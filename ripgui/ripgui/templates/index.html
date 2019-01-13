@@ -1,0 +1,22 @@
+<%inherit file="base.html"/>
+<%block name="title">Overview</%block>
+
+<div class="progress" id="progress"></div>
+
+Test!
+
+<script language="JavaScript">
+var circle = new ProgressBar.Circle('#progress', {
+	color: '#FCB03C',
+	duration: 500,
+	easing: 'easeInOut',
+	strokeWidth: 5,
+ step: function(state, circle) {
+
+		var value = Math.round(circle.value() * 100);
+		 circle.setText(value + "%");
+ 	},	
+});
+circle.animate(0.33);
+	
+</script>

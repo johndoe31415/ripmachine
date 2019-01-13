@@ -8,5 +8,10 @@ the super-shoddy implementation from years ago here.
 The UI uses Python3, mako and uwsgi. The ripdisc relies on dd_rescue and
 cdparanoia. Possible postprocessing tools coming later.
 
+## Included third-party code
+ripgui includes the file progressbar.min.js from
+[progressbar.js](https://github.com/kimmobrunfeldt/progressbar.js) which is
+licensed under the MIT license.
+
 ## License
 GNU GPL-3. 
