@@ -27,11 +27,13 @@ import threading
 import mako.lookup
 import subprocess
 import gevent.event
+from .RipMachine import RipMachine
 
 class Controller(object):
 	def __init__(self, config):
 		self._config = config
-		self._template_lookup = mako.lookup.TemplateLookup([ self._config["template_lookup_dir"] ], input_encoding = "utf-8", strict_undefined = True)
+		self._template_lookup = mako.lookup.TemplateLookup([ self._config["directories"]["templates"] ], input_encoding = "utf-8", strict_undefined = True)
+		self._ripmachine = RipMachine(self._config)
 
 	def serve_page(self, request, template_name, args = None):
 		if args is None:
@@ -47,3 +49,6 @@ class Controller(object):
 			additional_data_handler(args)
 		result = template.render(**args)
 		return result
+
+	def get_status(self):
+		return self._ripmachine.get_status()

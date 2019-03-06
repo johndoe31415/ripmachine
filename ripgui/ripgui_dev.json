@@ -1,4 +1,14 @@
 {
-	"template_lookup_dir": 	"ripgui/templates",
-	"debugging":			true
+	"debugging":			true,
+	"directories": {
+		"work":			"~/ripmachine/work",
+		"output":		"~/ripmachine/output",
+		"templates": 	"ripgui/templates"
+	},
+	"drives": [
+		{
+			"name":	"Drive 1",
+			"dev": "drive1"
+		}
+	]
 }

@@ -13,5 +13,7 @@ ripgui includes the file progressbar.min.js from
 [progressbar.js](https://github.com/kimmobrunfeldt/progressbar.js) which is
 licensed under the MIT license.
 
+apt-get install cdparanoia libcdio-utils genisoimage
+
 ## License
 GNU GPL-3. 

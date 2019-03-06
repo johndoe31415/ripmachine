@@ -5,6 +5,15 @@
 
 Test!
 
+
+Start rip
+<form method="post">
+	<input type="file" name="image" accept="image/*">
+	<input type="submit">
+</form>
+
+
+
 <script language="JavaScript">
 var circle = new ProgressBar.Circle('#progress', {
 	color: '#FCB03C',
@@ -15,8 +24,8 @@ var circle = new ProgressBar.Circle('#progress', {
 
 		var value = Math.round(circle.value() * 100);
 		 circle.setText(value + "%");
- 	},	
+ 	},
 });
 circle.animate(0.33);
-	
+
 </script>

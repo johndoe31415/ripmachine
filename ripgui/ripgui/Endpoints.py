@@ -24,3 +24,7 @@ ctrlr = Controller(config)
 @app.route("/")
 def index():
 	return ctrlr.serve_page(flask.request, "index")
+
+@app.route("/status")
+def status():
+	return flask.jsonify(ctrlr.get_status())
