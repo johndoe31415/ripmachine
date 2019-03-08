@@ -1,14 +1,4 @@
 {
-	"debugging":			true,
-	"directories": {
-		"work":			"~/ripmachine/work",
-		"output":		"~/ripmachine/output",
-		"templates": 	"ripgui/templates"
-	},
-	"drives": [
-		{
-			"name":	"Drive 1",
-			"dev": "drive1"
-		}
-	]
+	"debugging": true,
+	"ripmachine_config":	"../ripmachine.json"
 }

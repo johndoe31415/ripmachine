@@ -1,0 +1,15 @@
+{
+	"directories": {
+		"_work":			"~/ripmachine/work",
+		"work":				"/tmp/ripmachine"
+	},
+	"binaries": {
+		"ripdisc":			"${configdir}/ripdisc/ripdisc"
+	},
+	"drives": [
+		{
+			"name":	"Drive 1",
+			"dev": "${configdir}/drive1"
+		}
+	]
+}

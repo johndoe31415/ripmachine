@@ -56,6 +56,10 @@ class CDMedium():
 		self._media_id = self._determine_media_id()
 
 	@property
+	def raw_info(self):
+		return self._rawinfo
+
+	@property
 	def media_type(self):
 		return self._media_type
 
@@ -267,14 +271,13 @@ class CDDrive():
 	def check_drive_id(self):
 		if self._verbose:
 			print("Checking drive ID of %s" % (self._device))
-		stdout = subprocess.check_output([ "cd-drive", "-i", self._device ], stderr = subprocess.DEVNULL)
+		stdout = subprocess.check_output([ "cd-drive", "-i", self._device ], stderr = subprocess.DEVNULL if (not self._verbose) else None)
 		stdout = stdout.decode("utf-8")
 		result = self._DEV_REGEX.search(stdout)
 		if result is None:
 			raise Exception("Couldn't get device ID for device '%s'" % (self._device))
 		self._drive_id = result.groupdict()
 		return self._drive_id
-
 
 	def check_media_id(self):
 		if self._verbose:
@@ -283,7 +286,7 @@ class CDDrive():
 		self._media_type = medium.media_type
 		self._media_id = medium.media_id
 		if self._media_type == MediaType.Unknown:
-			print("Unknown disc mode: %s" % (medium.info))
+			print("Unknown disc mode: %s" % (medium.raw_info))
 
 	def __str__(self):
 		return "Drive<%s: %s with %s (%s)>" % (self.device, str(self.drive_id), self.media_type.name, str(self.media_id))

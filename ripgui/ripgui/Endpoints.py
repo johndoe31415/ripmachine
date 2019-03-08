@@ -23,8 +23,18 @@ ctrlr = Controller(config)
 
 @app.route("/")
 def index():
-	return ctrlr.serve_page(flask.request, "index")
+	return flask.redirect(flask.url_for("static", filename = "/html/index.html"))
 
 @app.route("/status")
 def status():
-	return flask.jsonify(ctrlr.get_status())
+	return flask.jsonify(ctrlr.ripmachine.get_status())
+
+@app.route("/start/<int:drive_id>")
+def start(drive_id):
+	ctrlr.ripmachine.start(drive_id)
+	return flask.jsonify({ "start": drive_id, "status": "ok" })
+
+@app.route("/abort/<int:drive_id>")
+def abort(drive_id):
+	ctrlr.ripmachine.abort(drive_id)
+	return flask.jsonify({ "abort": drive_id, "status": "ok" })

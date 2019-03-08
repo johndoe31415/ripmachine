@@ -24,31 +24,16 @@ import random
 import json
 import flask
 import threading
-import mako.lookup
 import subprocess
 import gevent.event
-from .RipMachine import RipMachine
+from ripmachine import RipMachine, RipConfig
 
 class Controller(object):
 	def __init__(self, config):
 		self._config = config
-		self._template_lookup = mako.lookup.TemplateLookup([ self._config["directories"]["templates"] ], input_encoding = "utf-8", strict_undefined = True)
-		self._ripmachine = RipMachine(self._config)
+		self._ripconfig = RipConfig(self._config["ripmachine_config"])
+		self._ripmachine = RipMachine(self._ripconfig)
 
-	def serve_page(self, request, template_name, args = None):
-		if args is None:
-			args = {
-				"debugging":		self._config.get("debugging", False),
-			}
-		try:
-			template = self._template_lookup.get_template(template_name + ".html")
-		except mako.exceptions.TopLevelLookupException:
-			return flask.Response("Template '%s' not found.\n" % (template_name), status = 404, mimetype = "text/plain")
-		additional_data_handler = getattr(self, "_handler_" + template_name, None)
-		if additional_data_handler is not None:
-			additional_data_handler(args)
-		result = template.render(**args)
-		return result
-
-	def get_status(self):
-		return self._ripmachine.get_status()
+	@property
+	def ripmachine(self):
+		return self._ripmachine
