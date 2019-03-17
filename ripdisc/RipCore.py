@@ -70,6 +70,8 @@ class RipCore():
 	def _execute_cmds(self, commands, progress, disc_size):
 		speed = SpeedAverager()
 		for (cid, command) in enumerate(commands, 1):
+			if self._args.verbose >= 1:
+				print(" ".join(command))
 			pos = progress()
 			speed.add(pos)
 			self._progress = {
@@ -81,7 +83,11 @@ class RipCore():
 				"speed": speed.real_speed,
 			}
 			self.write_status()
-			proc = subprocess.Popen(command, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+			if self._args.verbose >= 2:
+				output = None
+			else:
+				output = subprocess.DEVNULL
+			proc = subprocess.Popen(command, stdout = output, stderr = output)
 			while True:
 				try:
 					result = proc.wait(self._args.update_delay)
@@ -135,7 +141,7 @@ class RipCore():
 #		if tryno <= 1:
 #			pass
 #		elif tryno <= 2:
-#			ripcmd += [ "--force-read-speed", "2" ]
+#		cmd += [ "--force-read-speed", "2" ]
 #		elif tryno <= 3:
 #			ripcmd += [ "--force-read-speed", "1" ]
 #		elif tryno <= 4:

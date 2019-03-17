@@ -69,7 +69,7 @@ class CDMedium():
 
 	def _check_cdparanoia(self):
 		try:
-			if self._drive.verbose:
+			if self._drive.verbose >= 1:
 				print("Trying to determine audio TOC")
 			self._rawinfo["cdparanoia"] = subprocess.check_output([ "cdparanoia", "-Q", "-d", self._drive.device ], stderr = subprocess.STDOUT)
 		except subprocess.CalledProcessError:
@@ -77,7 +77,7 @@ class CDMedium():
 
 	def _check_wodim(self):
 		try:
-			if self._drive.verbose:
+			if self._drive.verbose >= 1:
 				print("Trying to determine wodim CD info")
 			self._rawinfo["wodim"] = subprocess.check_output([ "wodim", "dev=%s" % (self._drive.device), "-toc" ], stderr = subprocess.STDOUT)
 		except subprocess.CalledProcessError:
@@ -85,7 +85,7 @@ class CDMedium():
 
 	def _check_isoinfo(self):
 		try:
-			if self._drive.verbose:
+			if self._drive.verbose >= 1:
 				print("Trying to determine ISO info")
 			self._rawinfo["isoinfo"] = subprocess.check_output([ "isoinfo", "-d", "-i", self._drive.device ], stderr = subprocess.STDOUT)
 		except subprocess.CalledProcessError:
@@ -93,7 +93,7 @@ class CDMedium():
 
 	def _check_cd_info(self):
 		try:
-			if self._drive.verbose:
+			if self._drive.verbose >= 1:
 				print("Trying to determine CD info")
 			self._rawinfo["cdinfo"] = subprocess.check_output([ "cd-info", "-C", "--no-tracks", "--dvd", "--no-vcd", "--no-device-info", "--no-cddb", self._drive.device ], stderr = subprocess.STDOUT)
 		except subprocess.CalledProcessError:
@@ -231,7 +231,7 @@ class CDMedium():
 class CDDrive():
 	_DEV_REGEX = re.compile("^Vendor\s*:\s*(?P<vendor>[^\n]*?)\s*\n.*Model\s*:\s*(?P<model>[^\n]*?)\s*\nRevision\s*:\s*(?P<revision>[^\n]*?)\s*\n", flags = re.MULTILINE | re.DOTALL)
 
-	def __init__(self, device, restrict_media_types = None, verbose = False):
+	def __init__(self, device, restrict_media_types = None, verbose = 0):
 		self._device = device
 		self._drive_id = None
 		self._media_type = None
@@ -269,9 +269,9 @@ class CDDrive():
 		return self._media_id
 
 	def check_drive_id(self):
-		if self._verbose:
+		if self._verbose >= 1:
 			print("Checking drive ID of %s" % (self._device))
-		stdout = subprocess.check_output([ "cd-drive", "-i", self._device ], stderr = subprocess.DEVNULL if (not self._verbose) else None)
+		stdout = subprocess.check_output([ "cd-drive", "-i", self._device ], stderr = subprocess.DEVNULL if (self._verbose == 0) else None)
 		stdout = stdout.decode("utf-8")
 		result = self._DEV_REGEX.search(stdout)
 		if result is None:
@@ -280,7 +280,7 @@ class CDDrive():
 		return self._drive_id
 
 	def check_media_id(self):
-		if self._verbose:
+		if self._verbose >= 1:
 			print("Checking media ID of %s" % (self._device))
 		medium = CDMedium(self)
 		self._media_type = medium.media_type
