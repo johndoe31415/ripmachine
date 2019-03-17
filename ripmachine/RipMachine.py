@@ -44,6 +44,12 @@ class RipMachine():
 		rip_id = self._db.create(output_dir)
 		self._drives[drive_id].start(output_dir, rip_id)
 
+	def open(self, drive_id):
+		subprocess.Popen([ "eject", self._drives[drive_id].device ])
+
+	def close(self, drive_id):
+		subprocess.Popen([ "eject", "-t", self._drives[drive_id].device ])
+
 	def abort(self, drive_id):
 		self._drives[drive_id].abort()
 

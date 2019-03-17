@@ -39,6 +39,10 @@ class RipDrive():
 		return self._name
 
 	@property
+	def device(self):
+		return self._dev
+
+	@property
 	def status(self):
 		return self._status
 

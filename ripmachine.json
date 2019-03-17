@@ -10,6 +10,10 @@
 		{
 			"name":	"Drive 1",
 			"dev": "${configdir}/drive1"
+		},
+		{
+			"name":	"Drive 2",
+			"dev": "${configdir}/drive1"
 		}
 	]
 }

@@ -28,8 +28,8 @@ config = ripmachine.RipConfig("ripmachine.json")
 ripmachine = ripmachine.RipMachine(config)
 drive_id = 0
 drive = ripmachine.get_drive(drive_id)
-ripmachine.start(drive_id)
-while True:
-	print(drive.get_status())
-	time.sleep(5)
+ripmachine.close(drive_id)
+#while True:
+#	print(drive.get_status())
+#	time.sleep(5)
 

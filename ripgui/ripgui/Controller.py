@@ -19,17 +19,12 @@
 #
 #	Johannes Bauer <JohannesBauer@gmx.de>
 
-import time
-import random
-import json
 import flask
-import threading
-import subprocess
-import gevent.event
 from ripmachine import RipMachine, RipConfig
 
 class Controller(object):
-	def __init__(self, config):
+	def __init__(self, flask_app, config):
+		self._app = flask_app
 		self._config = config
 		self._ripconfig = RipConfig(self._config["ripmachine_config"])
 		self._ripmachine = RipMachine(self._ripconfig)
