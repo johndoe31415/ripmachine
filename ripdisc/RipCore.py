@@ -24,6 +24,7 @@ import json
 import shutil
 import datetime
 import subprocess
+import base64
 from CDDrive import CDDrive, MediaType
 from Tools import FileTools
 from SpeedAverager import SpeedAverager
@@ -34,7 +35,13 @@ class RipCore():
 		restrict_media_types = set([ MediaType.from_str(media_type) for media_type in self._args.force_medium ])
 		if len(restrict_media_types) == 0:
 			restrict_media_types = None
-		self._drive = CDDrive(self._args.drive, restrict_media_types = restrict_media_types, verbose = self._args.verbose)
+		if self._args.mock is None:
+			self._drive = CDDrive(self._args.drive, restrict_media_types = restrict_media_types, verbose = self._args.verbose)
+		else:
+			with open("mock_" + self._args.mock + ".json") as f:
+				mock_data = json.load(f)
+			mock_data = { key: base64.b64decode(value) for (key, value) in mock_data.items() }
+			self._drive = CDDrive(self._args.drive, mock_data = mock_data, verbose = self._args.verbose)
 		self._state = "idle"
 		self._error = None
 		self._progress = None
@@ -177,6 +184,22 @@ class RipCore():
 		disc_size = FileTools.get_filesize(self._drive.device)
 		self._execute_cmds(commands, progress = _determine_progress, disc_size = disc_size)
 
+	def _mock_rip(self):
+		self._state = "ripping"
+
+		class ProgressMock():
+			def __init__(self):
+				self._value = 0
+
+			def progress(self):
+				self._value += 123456
+				return self._value
+		prog_mock = ProgressMock()
+		cmds = [
+			[ "sleep", "10" ],
+		]
+		self._execute_cmds(cmds, prog_mock.progress, 123 * 1024 * 1024)
+
 	def commence(self):
 		if os.path.exists(self._args.destdir):
 			if self._args.force:
@@ -193,15 +216,18 @@ class RipCore():
 		os.makedirs(self._args.destdir)
 
 		self.write_status()
-		if self._drive.media_type == MediaType.DataCD:
-			self._rip_data_cd(self._args.destdir)
-		elif self._drive.media_type == MediaType.DVD:
-			self._rip_dvd(self._args.destdir)
-		elif self._drive.media_type == MediaType.AudioCD:
-			self._rip_audio_cd(self._args.destdir)
+		if self._args.mock is not None:
+			self._mock_rip()
 		else:
-			self._state = "error"
-			self._error = "Do not know how to handle media type %s." % (self._drive.media_type.name)
+			if self._drive.media_type == MediaType.DataCD:
+				self._rip_data_cd(self._args.destdir)
+			elif self._drive.media_type == MediaType.DVD:
+				self._rip_dvd(self._args.destdir)
+			elif self._drive.media_type == MediaType.AudioCD:
+				self._rip_audio_cd(self._args.destdir)
+			else:
+				self._state = "error"
+				self._error = "Do not know how to handle media type %s." % (self._drive.media_type.name)
 
 		self._state = "done"
 		self.write_status()

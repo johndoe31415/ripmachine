@@ -24,6 +24,7 @@ import enum
 import subprocess
 import hashlib
 import base64
+import json
 
 class MediaType(enum.IntEnum):
 	AudioCD = 0
@@ -47,10 +48,16 @@ class CDMedium():
 	_CDINFO2_REGEX = re.compile("^Application\s*: (?P<application>[^\n]*?)\s*\n.*Volume\s*: (?P<volume>[^\n]*?)\s*\n", flags = re.MULTILINE | re.DOTALL)
 	_WODIM_TRACK_INFO_REGEX = re.compile(r"^track:\s*(?P<trackno>\d+|lout)\s*lba:\s*(?P<offset>\d+)\s*\(\s*\d+\) \d{2}:\d{2}:\d{2}", flags = re.MULTILINE)
 
-	def __init__(self, drive):
+	def __init__(self, drive, mock_data = None):
 		self._drive = drive
-		self._rawinfo = { }
-		self._check()
+		if mock_data is None:
+			self._rawinfo = { }
+			self._check()
+#			with open("mock_output", "w") as f:
+#				json.dump({ key: base64.b64encode(value).decode("ascii") for (key, value) in self._rawinfo.items() }, f)
+		else:
+			self._rawinfo = mock_data
+
 		self._parse_infos()
 		self._media_type = self._determine_media_type()
 		self._media_id = self._determine_media_id()
@@ -231,13 +238,14 @@ class CDMedium():
 class CDDrive():
 	_DEV_REGEX = re.compile("^Vendor\s*:\s*(?P<vendor>[^\n]*?)\s*\n.*Model\s*:\s*(?P<model>[^\n]*?)\s*\nRevision\s*:\s*(?P<revision>[^\n]*?)\s*\n", flags = re.MULTILINE | re.DOTALL)
 
-	def __init__(self, device, restrict_media_types = None, verbose = 0):
+	def __init__(self, device, restrict_media_types = None, verbose = 0, mock_data = None):
 		self._device = device
 		self._drive_id = None
 		self._media_type = None
 		self._media_id = None
 		self._restrict_media_types = restrict_media_types
 		self._verbose = verbose
+		self._mock_data = mock_data
 
 	@property
 	def verbose(self):
@@ -282,7 +290,7 @@ class CDDrive():
 	def check_media_id(self):
 		if self._verbose >= 1:
 			print("Checking media ID of %s" % (self._device))
-		medium = CDMedium(self)
+		medium = CDMedium(self, mock_data = self._mock_data)
 		self._media_type = medium.media_type
 		self._media_id = medium.media_id
 		if self._media_type == MediaType.Unknown:
