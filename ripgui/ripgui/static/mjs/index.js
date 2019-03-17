@@ -110,6 +110,12 @@ class RipDrive {
 		} else if (this._status_data["status"] == "running") {
 			this._set_status_icon("run");
 			action_span.innerHTML = "running";
+			if (this._status_data["track"] != null) {
+				action_span.innerHTML += ", track " + this._status_data["track"][0] + " of " + this._status_data["track"][1];
+
+			}
+			action_span.innerHTML += sprintf(", speed %.0f kB/s", this._status_data["speed"] / 1024);
+			action_span.innerHTML += sprintf(", %.0f MB of %.0f MB", this._status_data["progress"] / 1024 / 1024, this._status_data["data"] / 1024 / 1024);
 		} else if (this._status_data["status"] == "aborted") {
 			this._set_status_icon("err");
 			action_span.innerHTML = "aborted";
