@@ -32,6 +32,11 @@ class RipDrive {
 		fetch("/api/close/" + this._drive_id);
 	}
 
+	_on_clear() {
+		console.log("clear " + this._drive_id);
+		fetch("/api/clear/" + this._drive_id);
+	}
+
 	_recv_template(drive_div, template) {
 		drive_div.innerHTML = template;
 
@@ -46,16 +51,19 @@ class RipDrive {
 			},
 		});
 
-		drive_div.querySelector("#imagefile");
+//		drive_div.querySelector("#imagefile");
 		drive_div.querySelector("#btn_prepare").addEventListener("click", () => this._on_prepare());
 		drive_div.querySelector("#btn_start").addEventListener("click", () => this._on_start());
 		drive_div.querySelector("#btn_stop").addEventListener("click", () => this._on_stop());
 		drive_div.querySelector("#btn_open").addEventListener("click", () => this._on_open());
 		drive_div.querySelector("#btn_close").addEventListener("click", () => this._on_close());
+		drive_div.querySelector("#btn_clear").addEventListener("click", () => this._on_clear());
 
 		this.display_status_data();
 
 		this._drive_div = drive_div;
+
+		this._set_status_icon("");
 		this.display_status_data();
 	}
 
@@ -71,10 +79,22 @@ class RipDrive {
 		}).then((template) => this._recv_template(drive_div, template));
 	}
 
+	_set_status_icon(icon_name) {
+		this._drive_div.querySelectorAll(".icon").forEach(function(element) {
+			element.style.display = "none";
+		});
+		const icon = this._drive_div.querySelector(".icon-" + icon_name);
+		if (icon) {
+			icon.style.display = "";
+		}
+	}
+
 	display_status_data() {
 		if (!this._status_data || !this._drive_div) {
 			return;
 		}
+
+		console.log(this._status_data);
 
 		this._drive_div.querySelector("#drive_id").innerHTML = this._status_data["name"];
 		let ratio = (this._status_data["data"] == 0) ? 0 : (this._status_data["progress"] / this._status_data["data"]);
@@ -82,6 +102,27 @@ class RipDrive {
 			ratio = 1;
 		}
 		this._progress.animate(ratio);
+
+		const action_span = this._drive_div.querySelector("#action");
+		if (this._status_data["status"] == "idle") {
+			this._set_status_icon("ok");
+			action_span.innerHTML = "idle";
+		} else if (this._status_data["status"] == "running") {
+			this._set_status_icon("run");
+			action_span.innerHTML = "running";
+		} else if (this._status_data["status"] == "aborted") {
+			this._set_status_icon("err");
+			action_span.innerHTML = "aborted";
+		} else if (this._status_data["status"] == "errored") {
+			this._set_status_icon("err");
+			action_span.innerHTML = "error: " + this._status_data["error"];
+		} else if (this._status_data["status"] == "completed") {
+			this._set_status_icon("ok");
+			action_span.innerHTML = "completed";
+		} else {
+			this._set_status_icon("undefined");
+			action_span.innerHTML = "undefined";
+		}
 	}
 
 	update_status_data(data) {

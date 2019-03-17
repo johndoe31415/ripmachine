@@ -24,9 +24,6 @@ import enum
 class RipStatus(enum.IntEnum):
 	Idle = 0
 	Running = 1
-
-class LastRipResult(enum.IntEnum):
-	Aborted = 0
-	Errored = 1
-	Completed = 2
-
+	Aborted = 2
+	Errored = 3
+	Completed = 4

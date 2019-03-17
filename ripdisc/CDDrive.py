@@ -286,7 +286,7 @@ class CDDrive():
 		self._media_type = medium.media_type
 		self._media_id = medium.media_id
 		if self._media_type == MediaType.Unknown:
-			print("Unknown disc mode: %s" % (medium.raw_info))
+			raise Exception("Unknown disc mode: %s" % (medium.raw_info))
 
 	def __str__(self):
 		return "Drive<%s: %s with %s (%s)>" % (self.device, str(self.drive_id), self.media_type.name, str(self.media_id))

@@ -15,5 +15,10 @@ licensed under the MIT license.
 
 apt-get install cdparanoia libcdio-utils genisoimage
 
+# Included
+Icons: https://feathericons.com/
+Spinner: by Sam Herbert (@sherb), for everyone. More @ http://goo.gl/7AJzbL
+sprintf: TODO
+
 ## License
 GNU GPL-3. 

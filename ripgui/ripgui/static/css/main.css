@@ -4,5 +4,10 @@ body {
 
 div.drive {
 	width: 300px;
-	margin-bottom: 20px;
+	margin-bottom: 40px;
+}
+
+img.icon {
+	width: 32px;
+	height: 32px;
 }

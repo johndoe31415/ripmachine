@@ -32,7 +32,7 @@ class RipDrive():
 		self._status = RipStatus.Idle
 		self._proc = None
 		self._rip_target = None
-		self._last_result = None
+		self._error = None
 
 	@property
 	def name(self):
@@ -45,6 +45,14 @@ class RipDrive():
 	@property
 	def status(self):
 		return self._status
+
+	def clear(self):
+		if self._status in [ RipStatus.Aborted, RipStatus.Completed, RipStatus.Errored ]:
+			self._status = RipStatus.Idle
+			self._error = None
+			return True
+		else:
+			return False
 
 	def abort(self):
 		if self._proc is not None:
@@ -67,7 +75,11 @@ class RipDrive():
 		try:
 			result = self._proc.wait(timeout = 0)
 			self._proc = None
-			self._status = RipStatus.Idle
+			if result == 0:
+				self._status = RipStatus.Completed
+			else:
+				self._status = RipStatus.Errored
+				self._error = "Process exited with status %d" % (result)
 		except subprocess.TimeoutExpired:
 			pass
 
@@ -90,10 +102,15 @@ class RipDrive():
 			"progress":				0,
 			"data":					0,
 			"speed":				0,
+			"error":				self._error,
+			"track":				None,
 		}
 		status = self._read_status_json()
-		if status is not None:
+		if (status is not None) and ("progress" in status) and (status["progress"] is not None):
 			result["progress"] = status["progress"]["bytes_read"]
 			result["data"] = status["progress"]["disc_size"]
 			result["speed"] = status["progress"]["speed"]
+
+			if "number" in status["progress"]:
+				result["track"] = [ status["progress"]["number"], status["progress"]["total"] ]
 		return result
