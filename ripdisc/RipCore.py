@@ -25,6 +25,7 @@ import shutil
 import datetime
 import subprocess
 import base64
+import time
 from CDDrive import CDDrive, MediaType
 from Tools import FileTools
 from SpeedAverager import SpeedAverager
@@ -189,17 +190,33 @@ class RipCore():
 		self._state = "ripping"
 
 		class ProgressMock():
-			def __init__(self):
-				self._value = 0
+			def __init__(self, total_size, time_secs):
+				self._total_size = total_size
+				self._t0 = time.time()
+				self._time_secs = time_secs
+
+			@property
+			def total_size(self):
+				return self._total_size
+
+			@property
+			def time_secs(self):
+				return self._time_secs
 
 			def progress(self):
-				self._value += 123456
-				return self._value
-		prog_mock = ProgressMock()
+				now = time.time()
+				tdiff = now - self._t0
+				amount_per_sec = self._total_size / self._time_secs
+				pos = round(tdiff * amount_per_sec)
+				if pos > self._total_size:
+					pos = self._total_size
+				return pos
+
+		prog_mock = ProgressMock(time_secs = 35, total_size = 123 * 1024 * 1024)
 		cmds = [
-			[ "sleep", "10" ],
+			[ "sleep", str(prog_mock.time_secs) ],
 		]
-		self._execute_cmds(cmds, prog_mock.progress, 123 * 1024 * 1024)
+		self._execute_cmds(cmds, prog_mock.progress, prog_mock.total_size)
 
 	def commence(self):
 		if os.path.exists(self._args.destdir):
