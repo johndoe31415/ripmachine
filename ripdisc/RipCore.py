@@ -38,7 +38,8 @@ class RipCore():
 		if self._args.mock is None:
 			self._drive = CDDrive(self._args.drive, restrict_media_types = restrict_media_types, verbose = self._args.verbose)
 		else:
-			with open("mock_" + self._args.mock + ".json") as f:
+			dirname = os.path.dirname(__file__)
+			with open(dirname + "/mock_" + self._args.mock + ".json") as f:
 				mock_data = json.load(f)
 			mock_data = { key: base64.b64decode(value) for (key, value) in mock_data.items() }
 			self._drive = CDDrive(self._args.drive, mock_data = mock_data, verbose = self._args.verbose)

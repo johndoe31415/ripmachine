@@ -36,7 +36,7 @@ parser.add_argument("drive", metavar = "src_drive", type = str, help = "Device d
 parser.add_argument("destdir", metavar = "destdir", type = str, help = "Destination directory to place ripped data in")
 args = parser.parse_args(sys.argv[1:])
 
-if not os.path.exists(args.drive):
+if (args.mock is None) and (not os.path.exists(args.drive)):
 	print("No valid drive: %s" % (args.drive), file = sys.stderr)
 	sys.exit(1)
 

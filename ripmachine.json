@@ -1,4 +1,7 @@
 {
+	"options": {
+		"mock":		true
+	},
 	"directories": {
 		"_work":			"~/ripmachine/work",
 		"work":				"/tmp/ripmachine"

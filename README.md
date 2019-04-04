@@ -5,8 +5,22 @@ web-based UI to rip them. Now I'm in a similar situation and I'm reimplementing
 the super-shoddy implementation from years ago here.
 
 ## Dependencies
-The UI uses Python3, mako and uwsgi. The ripdisc relies on dd_rescue and
-cdparanoia. Possible postprocessing tools coming later.
+For the UI, the following packages are needed:
+  * Python 3
+  * python3-mako
+  * uwsgi
+
+For ripdisc, the following tools are relied upon:
+  * dd_rescue
+  * cdparanoia
+  * libcdio
+
+Here's a quick way to install dependencies on a Ubuntu machine:
+
+```
+# apt-get update
+# apt-get install python3 python3-mako cdparanoia dd_rescue libcdio-utils
+```
 
 ## Included third-party code
 ripgui includes the file progressbar.min.js from

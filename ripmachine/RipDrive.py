@@ -66,7 +66,10 @@ class RipDrive():
 		self._rip_target = output_directory
 		self._status = RipStatus.Running
 		ripdisc_binary = self._config.get_binary("ripdisc")
-		cmd = [ ripdisc_binary, "-f", "-m", "audio", "--callback-id", rip_id, self._dev, output_directory ]
+		cmd = [ ripdisc_binary, "-f", "-m", "audio", "--callback-id", rip_id ]
+		if self._config.mock_mode:
+			cmd += [ "--mock", "audio" ]
+		cmd += [ self._dev, output_directory ]
 		self._proc = subprocess.Popen(cmd)
 
 	def _check_process(self):

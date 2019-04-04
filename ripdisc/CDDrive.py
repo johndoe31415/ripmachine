@@ -279,6 +279,13 @@ class CDDrive():
 	def check_drive_id(self):
 		if self._verbose >= 1:
 			print("Checking drive ID of %s" % (self._device))
+		if self._mock_data is not None:
+			self._drive_id = {
+				"vendor":		"MockDrives Inc.",
+				"model":		"MockDVD Deluxe",
+				"revision":		"2000",
+			}
+			return self._drive_id
 		stdout = subprocess.check_output([ "cd-drive", "-i", self._device ], stderr = subprocess.DEVNULL if (self._verbose == 0) else None)
 		stdout = stdout.decode("utf-8")
 		result = self._DEV_REGEX.search(stdout)

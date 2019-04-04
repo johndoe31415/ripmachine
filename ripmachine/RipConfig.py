@@ -52,3 +52,7 @@ class RipConfig():
 		with contextlib.suppress(FileExistsError):
 			os.makedirs(directory)
 		return directory
+
+	@property
+	def mock_mode(self):
+		return self._config.get("options", { }).get("mock", False)
