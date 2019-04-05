@@ -34,14 +34,18 @@ class RipMachine():
 		self._config = config
 		self._work_dir = self._config.get_directory_by_name("work")
 		self._db = RipDB(self._work_dir + "/ripmachine.sqlite3")
-		self._drives = [ RipDrive(self._config, drive_data) for drive_data in config.drives ]
+		self._drives = [ RipDrive(self._config, drive_data, self._state_change_callback) for drive_data in config.drives ]
+
+	def _state_change_callback(self, drive, new_state):
+		rip_id = drive.rip_id
+		self._db.finish(rip_id, new_state.name.lower())
 
 	def get_drive(self, drive_id):
 		return self._drives[drive_id]
 
-	def start(self, drive_id):
+	def start(self, drive_id, image = None):
 		output_dir = self._config.get_directory("%s/rips/%s" % (self._work_dir, datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")))
-		rip_id = self._db.create(output_dir)
+		rip_id = self._db.create(output_dir, image)
 		self._drives[drive_id].start(output_dir, rip_id)
 
 	def open(self, drive_id):

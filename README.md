@@ -14,12 +14,17 @@ For ripdisc, the following tools are relied upon:
   * dd_rescue
   * cdparanoia
   * libcdio
+  * wodim
+  * mplayer
+
+For rippostproc, these are the dependencies that are necessary:
+  * flac
 
 Here's a quick way to install dependencies on a Ubuntu machine:
 
 ```
 # apt-get update
-# apt-get install python3 python3-mako cdparanoia dd_rescue libcdio-utils
+# apt-get install python3 python3-mako mplayer cdparanoia dd_rescue libcdio-utils wodim flac
 ```
 
 ## Included third-party code

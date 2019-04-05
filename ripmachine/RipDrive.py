@@ -25,14 +25,16 @@ import subprocess
 from .RipEnums import RipStatus
 
 class RipDrive():
-	def __init__(self, config, drive_config):
+	def __init__(self, config, drive_config, state_change_callback):
 		self._config = config
 		self._name = drive_config["name"]
 		self._dev = self._config.get_file(drive_config["dev"])
 		self._status = RipStatus.Idle
+		self._current_rip_id = None
 		self._proc = None
 		self._rip_target = None
 		self._error = None
+		self._state_change_callback = state_change_callback
 
 	@property
 	def name(self):
@@ -46,10 +48,15 @@ class RipDrive():
 	def status(self):
 		return self._status
 
+	@property
+	def rip_id(self):
+		return self._current_rip_id
+
 	def clear(self):
 		if self._status in [ RipStatus.Aborted, RipStatus.Completed, RipStatus.Errored ]:
 			self._status = RipStatus.Idle
 			self._error = None
+			self._current_rip_id = None
 			return True
 		else:
 			return False
@@ -59,10 +66,12 @@ class RipDrive():
 			self._proc.kill()
 		self._proc = None
 		self._status = RipStatus.Aborted
+		self._state_change_callback(self, self._status)
 
 	def start(self, output_directory, rip_id):
 		if self._proc is not None:
 			raise Exception("Ripping already in progress.")
+		self._current_rip_id = rip_id
 		self._rip_target = output_directory
 		self._status = RipStatus.Running
 		ripdisc_binary = self._config.get_binary("ripdisc")
@@ -83,6 +92,7 @@ class RipDrive():
 			else:
 				self._status = RipStatus.Errored
 				self._error = "Process exited with status %d" % (result)
+			self._state_change_callback(self, self._status)
 		except subprocess.TimeoutExpired:
 			pass
 

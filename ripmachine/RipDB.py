@@ -41,12 +41,45 @@ class RipDB():
 			);
 			""")
 			self._conn.commit()
+
+		# If we had processes that were running previous, we consider them dead now.
+		self._cursor.execute("UPDATE rips SET end_utc = ?, status = 'rebooted' WHERE end_utc IS NULL;", (self._now(), ))
+		self._conn.commit()
+
+		with contextlib.suppress(sqlite3.OperationalError):
+			self._cursor.execute("""
+			CREATE TABLE ripimages (
+				ripid uuid PRIMARY KEY,
+				image blob NOT NULL
+			);
+			""")
+			self._conn.commit()
+
+		with contextlib.suppress(sqlite3.OperationalError):
+			self._cursor.execute("""
+			CREATE TABLE ripmeta (
+				ripid uuid PRIMARY KEY,
+				artist varchar NULL,
+				title varchar NULL
+			);
+			""")
+			self._conn.commit()
 		self._lock = threading.Lock()
 
-	def create(self, output_dir):
+	def _now(self):
+		return datetime.datetime.utcnow().strftime("%Y-%m-%DT%H:%M:%SZ")
+
+	def create(self, output_dir, image = None):
 		with self._lock:
-			rip_id = str(uuid.uuid4())
+			ripid = str(uuid.uuid4())
 			now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-			self._cursor.execute("INSERT INTO rips (ripid, start_utc, target_directory, status) VALUES (?, ?, ?, 'idle');", (rip_id, now, output_dir))
+			self._cursor.execute("INSERT INTO rips (ripid, start_utc, target_directory, status) VALUES (?, ?, ?, 'running');", (ripid, now, output_dir))
+			if image is not None:
+				self._cursor.execute("INSERT INTO ripimages (ripid, image) VALUES (?, ?);", (ripid, image))
 			self._conn.commit()
-			return rip_id
+			return ripid
+
+	def finish(self, ripid, status):
+		with self._lock:
+			self._cursor.execute("UPDATE rips SET end_utc = ?, status = ? WHERE ripid = ?", (self._now(), status, ripid))
+			self._conn.commit()
