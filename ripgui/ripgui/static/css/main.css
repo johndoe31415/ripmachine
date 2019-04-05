@@ -11,3 +11,26 @@ img.icon {
 	width: 32px;
 	height: 32px;
 }
+
+button {
+	border: 1px solid #bbb;
+	background: #eee;
+	border-radius: 4px;
+	padding: 10px 20px 10px 20px;
+	margin: 3px;
+	width: 90px;
+}
+
+button :hover {
+	background: #ccc;
+}
+
+
+input[type=file] {
+	border: 1px solid #bbb;
+	background: #eee;
+	border-radius: 4px;
+	padding: 10px 20px 10px 20px;
+	margin: 3px 5px 3px 5px;
+	width: 250px;
+}
