@@ -7,14 +7,18 @@ class RipDrive {
 		this._progress = null;
 	}
 
-	_on_prepare() {
-		console.log("prepare " + this._drive_id);
-		drive_div.querySelector("#imagefile");
-	}
-
 	_on_start() {
 		console.log("start " + this._drive_id);
-		fetch("/api/start/" + this._drive_id);
+		const post_data = {
+			"muh":	"kuh"
+		};
+		fetch("/api/start/" + this._drive_id, {
+			method: "POST",
+			body: JSON.stringify(post_data),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		});
 	}
 
 	_on_stop() {
@@ -51,8 +55,6 @@ class RipDrive {
 			},
 		});
 
-//		drive_div.querySelector("#imagefile");
-		drive_div.querySelector("#btn_prepare").addEventListener("click", () => this._on_prepare());
 		drive_div.querySelector("#btn_start").addEventListener("click", () => this._on_start());
 		drive_div.querySelector("#btn_stop").addEventListener("click", () => this._on_stop());
 		drive_div.querySelector("#btn_open").addEventListener("click", () => this._on_open());
@@ -89,6 +91,18 @@ class RipDrive {
 		}
 	}
 
+	_enable_ui_buttons(buttons) {
+		this._drive_div.querySelectorAll(".ui-element").forEach(function(element) {
+			element.style.display = "none";
+		});
+		for (const button_name of buttons) {
+			const button = this._drive_div.querySelector(".ui-element-" + button_name);
+			if (button) {
+				button.style.display = "";
+			}
+		}
+	}
+
 	display_status_data() {
 		if (!this._status_data || !this._drive_div) {
 			return;
@@ -107,6 +121,7 @@ class RipDrive {
 		if (this._status_data["status"] == "idle") {
 			this._set_status_icon("ok");
 			action_span.innerHTML = "idle";
+			this._enable_ui_buttons([ "image", "start", "open", "close" ]);
 		} else if (this._status_data["status"] == "running") {
 			this._set_status_icon("run");
 			action_span.innerHTML = "running";
@@ -116,18 +131,23 @@ class RipDrive {
 			}
 			action_span.innerHTML += sprintf(", speed %.0f kB/s", this._status_data["speed"] / 1024);
 			action_span.innerHTML += sprintf(", %.0f MB of %.0f MB", this._status_data["progress"] / 1024 / 1024, this._status_data["data"] / 1024 / 1024);
+			this._enable_ui_buttons([ "stop" ]);
 		} else if (this._status_data["status"] == "aborted") {
 			this._set_status_icon("err");
 			action_span.innerHTML = "aborted";
+			this._enable_ui_buttons([ "clear" ]);
 		} else if (this._status_data["status"] == "errored") {
 			this._set_status_icon("err");
 			action_span.innerHTML = "error: " + this._status_data["error"];
+			this._enable_ui_buttons([ "clear" ]);
 		} else if (this._status_data["status"] == "completed") {
 			this._set_status_icon("ok");
 			action_span.innerHTML = "completed";
+			this._enable_ui_buttons([ "clear" ]);
 		} else {
 			this._set_status_icon("undefined");
 			action_span.innerHTML = "undefined";
+			this._enable_ui_buttons([ ]);
 		}
 	}
 

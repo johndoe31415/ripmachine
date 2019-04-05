@@ -50,7 +50,7 @@ def index():
 def api_status():
 	return flask.jsonify(ctrlr.ripmachine.get_status())
 
-@app.route("/api/start/<int:drive_id>")
+@app.route("/api/start/<int:drive_id>", methods = [ "POST" ])
 def api_start(drive_id):
 	ctrlr.ripmachine.start(drive_id)
 	return flask.jsonify({ "start": drive_id, "status": "ok" })

@@ -53,6 +53,9 @@ class RipMachine():
 	def abort(self, drive_id):
 		self._drives[drive_id].abort()
 
+	def clear(self, drive_id):
+		self._drives[drive_id].clear()
+
 	@property
 	def drives(self):
 		return iter(self._drives)

@@ -1,17 +1,23 @@
-<span id="drive_id">#</span>: <span id="action">#</span>
-<div>
-	<img class="icon icon-ok" src="/static/img/check.svg" />
-	<img class="icon icon-err" src="/static/img/alert-triangle.svg" />
-	<img class="icon icon-run" src="/static/img/spinner.svg" />
-	<img class="icon icon-undefined" src="/static/img/meh.svg" />
+<div class="header">
+	<div class="info">
+		<span id="drive_id">#</span>: <span id="action">#</span>
+	</div>
+
+	<div class="icon">
+		<img class="icon icon-ok" src="/static/img/check.svg" />
+		<img class="icon icon-err" src="/static/img/alert-triangle.svg" />
+		<img class="icon icon-run" src="/static/img/spinner.svg" />
+		<img class="icon icon-undefined" src="/static/img/meh.svg" />
+	</div>
 </div>
+
 <div class="progress" id="progress"></div>
 
-<input id="imagefile" type="file" name="image" accept="image/*">
-<button id="btn_prepare">Prepare</button>
-<button id="btn_start">Start</button>
-<button id="btn_stop">Stop</button>
-<button id="btn_open">Open</button>
-<button id="btn_close">Close</button>
-<button id="btn_clear">Clear</button>
-
+<div class="ui">
+	<input class="ui-element ui-element-image" id="imagefile" type="file" name="image" accept="image/*">
+	<button class="ui-element ui-element-start" id="btn_start">Start</button>
+	<button class="ui-element ui-element-stop" id="btn_stop">Stop</button>
+	<button class="ui-element ui-element-open" id="btn_open">Open</button>
+	<button class="ui-element ui-element-close" id="btn_close">Close</button>
+	<button class="ui-element ui-element-clear" id="btn_clear">Clear</button>
+</div>
