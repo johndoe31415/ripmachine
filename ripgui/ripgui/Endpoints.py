@@ -97,3 +97,11 @@ def api_image(ripid):
 			headers = {
 				"Content-Type":	"image/jpeg",
 			})
+
+@app.route("/api/setname/<uuid:ripid>", methods = [ "POST" ])
+def api_setname(ripid):
+	ripid = str(ripid)
+	data = flask.request.json
+	print(data)
+	ctrlr.ripmachine.set_name(ripid, data)
+	return flask.jsonify({ "status": "ok" })

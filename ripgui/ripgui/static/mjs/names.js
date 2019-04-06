@@ -26,23 +26,46 @@ class NameTable {
 		this._base_div = base_div;
 	}
 
-	_add_entry(entry) {
+	_add(entry_div, ripid) {
+		const values = { };
+		entry_div.querySelectorAll(".collect").forEach(function(node) {
+			values[node.name] = node.value;
+		});
+		console.log(values);
+
+		fetch("/api/setname/" + ripid, {
+			method: "POST",
+			body: JSON.stringify(values),
+			headers: {
+				"Content-Type": "application/json"
+			}
+		}).then(function(response) {
+			if (response.status == 200) {
+				entry_div.remove();
+			}
+		});
+	}
+
+	_apply_entry_template(entry_div, entry_template, entry_data) {
+		entry_div.innerHTML = entry_template;
+		entry_div.querySelector("#riptime").innerHTML = entry_data["start_utc"];
+		entry_div.querySelector("#ripimg").src = "/api/image/" + entry_data["ripid"];
+		entry_div.querySelector("#btn_add").addEventListener("click", () => this._add(entry_div, entry_data["ripid"]));
+	}
+
+	_add_entry(entry_data) {
 		const entry_div = document.createElement("div");
 		this._base_div.append(entry_div);
 		fetch("/static/html/fragment_entry.html").then(function(response) {
 			if (response.status == 200) {
 				return response.text();
 			}
-		}).then(function(entry_template) {
-			entry_div.innerHTML = entry_template;
-			entry_div.querySelector("#riptime").innerHTML = entry["start_utc"];
-			entry_div.querySelector("#ripimg").src = "/api/image/" + entry["ripid"];
-		});
+		}).then((entry_template) => this._apply_entry_template(entry_div, entry_template, entry_data));
 	}
 
 	populate(entries) {
-		for (const entry of entries) {
-			this._add_entry(entry);
+		for (const entry_data of entries) {
+			this._add_entry(entry_data);
 		}
 	}
 }

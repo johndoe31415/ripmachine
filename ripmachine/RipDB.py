@@ -60,7 +60,7 @@ class RipDB():
 			CREATE TABLE ripmeta (
 				ripid uuid PRIMARY KEY,
 				artist varchar NULL,
-				title varchar NULL
+				album varchar NULL
 			);
 			""")
 			self._conn.commit()
@@ -99,3 +99,12 @@ class RipDB():
 				return row[0]
 			else:
 				return None
+
+	def set_name(self, ripid, values):
+		with self._lock:
+			(count, ) = self._cursor.execute("SELECT COUNT(*) FROM ripmeta WHERE ripid = ?;", (ripid, )).fetchone()
+			if count == 0:
+				self._cursor.execute("INSERT INTO ripmeta (ripid, artist, album) VALUES (?, ?, ?);", (ripid, values.get("artist", ""), values.get("album", "")))
+			else:
+				self._cursor.execute("UPDATE ripmeta SET artist = ?, album = ? WHERE ripid = ?;", (values.get("artist", ""), values.get("album", ""), ripid))
+			self._conn.commit()

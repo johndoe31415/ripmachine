@@ -82,6 +82,9 @@ class RipMachine():
 		image_raw = self._db.get_image(ripid)
 		return image_raw
 
+	def set_name(self, ripid, values):
+		self._db.set_name(ripid, values)
+
 if __name__ == "__main__":
 	import time
 	import json
