@@ -52,33 +52,26 @@ def api_status():
 
 @app.route("/api/start/<int:drive_id>", methods = [ "POST" ])
 def api_start(drive_id):
-	ctrlr.ripmachine.start(drive_id)
-	return flask.jsonify({ "start": drive_id, "status": "ok" })
+	image = flask.request.data
+	ctrlr.ripmachine.start(drive_id, image = image)
+	return api_status()
 
 @app.route("/api/abort/<int:drive_id>")
 def api_abort(drive_id):
 	ctrlr.ripmachine.abort(drive_id)
-	return flask.jsonify({ "abort": drive_id, "status": "ok" })
-
-@app.route("/api/prepare/<int:drive_id>")
-def api_prepare(drive_id):
-#	ctrlr.ripmachine.abort(drive_id)
-	return flask.jsonify({ "status": "ok" })
+	return api_status()
 
 @app.route("/api/open/<int:drive_id>")
 def api_open(drive_id):
 	ctrlr.ripmachine.open(drive_id)
-	return flask.jsonify({ "status": "ok" })
+	return api_status()
 
 @app.route("/api/close/<int:drive_id>")
 def api_close(drive_id):
 	ctrlr.ripmachine.close(drive_id)
-	return flask.jsonify({ "status": "ok" })
+	return api_status()
 
 @app.route("/api/clear/<int:drive_id>")
 def api_clear(drive_id):
-	result = ctrlr.ripmachine.clear(drive_id)
-	if result:
-		return flask.jsonify({ "success": True, "status": "ok" })
-	else:
-		return flask.jsonify({ "success": False, "status": "err" })
+	ctrlr.ripmachine.clear(drive_id)
+	return api_status()

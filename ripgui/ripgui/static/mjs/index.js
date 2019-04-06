@@ -1,5 +1,6 @@
 class RipDrive {
-	constructor(drive_id, overview_div) {
+	constructor(rip_ui, drive_id, overview_div) {
+		this._rip_ui = rip_ui;
 		this._drive_id = drive_id;
 		this._overview_div = overview_div;
 		this._drive_div = null;
@@ -7,38 +8,53 @@ class RipDrive {
 		this._progress = null;
 	}
 
+	_fetch_status(uri, options) {
+		console.log(uri);
+		fetch(uri, options).then(function(response) {
+	        if (response.status == 200) {
+				return response.json();
+        	}
+		}).then((status_doc) => this._rip_ui._recv_status(status_doc));
+	}
+
 	_on_start() {
-		console.log("start " + this._drive_id);
-		const post_data = {
-			"muh":	"kuh"
-		};
-		fetch("/api/start/" + this._drive_id, {
+		const file = this._drive_div.querySelector("#imagefile");
+		if (file.files.length < 1) {
+			alert("You have not added a file.");
+			return;
+		}
+		//const post_data = {
+		//	"muh":	"kuh"
+		//};
+		this._fetch_status("/api/start/" + this._drive_id, {
 			method: "POST",
+			body: file.files[0],
+			headers: {
+				"Content-Type": "application/octet-stream"
+			}
+			/*
 			body: JSON.stringify(post_data),
 			headers: {
 				"Content-Type": "application/json"
 			}
+			*/
 		});
 	}
 
 	_on_stop() {
-		console.log("stop " + this._drive_id);
-		fetch("/api/abort/" + this._drive_id);
+		this._fetch_status("/api/abort/" + this._drive_id);
 	}
 
 	_on_open() {
-		console.log("open " + this._drive_id);
-		fetch("/api/open/" + this._drive_id);
+		this._fetch_status("/api/open/" + this._drive_id);
 	}
 
 	_on_close() {
-		console.log("close " + this._drive_id);
-		fetch("/api/close/" + this._drive_id);
+		this._fetch_status("/api/close/" + this._drive_id);
 	}
 
 	_on_clear() {
-		console.log("clear " + this._drive_id);
-		fetch("/api/clear/" + this._drive_id);
+		this._fetch_status("/api/clear/" + this._drive_id);
 	}
 
 	_recv_template(drive_div, template) {
@@ -108,7 +124,7 @@ class RipDrive {
 			return;
 		}
 
-		console.log(this._status_data);
+		//console.log(this._status_data);
 
 		this._drive_div.querySelector("#drive_id").innerHTML = this._status_data["name"];
 		let ratio = (this._status_data["data"] == 0) ? 0 : (this._status_data["progress"] / this._status_data["data"]);
@@ -167,7 +183,7 @@ class RipGUI {
 		if (this._drives == null) {
 			this._drives = [ ];
 			for (const drive_id in status_doc["drives"]) {
-				const drive = new RipDrive(drive_id, this._overview);
+				const drive = new RipDrive(this, drive_id, this._overview);
 				drive.initialize_ui();
 				this._drives.push(drive);
 			}
