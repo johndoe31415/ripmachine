@@ -69,6 +69,18 @@ class RipMachine():
 			"drives": [ drive.get_status() for drive in self.drives ],
 		}
 
+	def get_unnamed(self):
+		return [
+			{
+				"ripid":		item[0],
+				"start_utc":	item[1],
+				"status":		item[2],
+			} for item in self._db.get_unnamed()
+		]
+
+	def get_image(self, ripid):
+		image_raw = self._db.get_image(ripid)
+		return image_raw
 
 if __name__ == "__main__":
 	import time

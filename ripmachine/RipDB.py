@@ -83,3 +83,19 @@ class RipDB():
 		with self._lock:
 			self._cursor.execute("UPDATE rips SET end_utc = ?, status = ? WHERE ripid = ?", (self._now(), status, ripid))
 			self._conn.commit()
+
+	def get_unnamed(self):
+		with self._lock:
+			return self._cursor.execute("""SELECT rips.ripid, start_utc, status FROM rips
+					LEFT JOIN ripmeta ON rips.ripid = ripmeta.ripid
+					WHERE ((status = 'running') OR (status = 'completed')) AND (ripmeta.ripid IS NULL)
+					ORDER BY start_utc ASC
+			""").fetchall()
+
+	def get_image(self, ripid):
+		with self._lock:
+			row = self._cursor.execute("SELECT image FROM ripimages WHERE ripid = ?;", (ripid, )).fetchone()
+			if row is not None:
+				return row[0]
+			else:
+				return None

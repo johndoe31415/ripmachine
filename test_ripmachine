@@ -27,7 +27,8 @@ import time
 config = ripmachine.RipConfig("ripmachine.json")
 ripmachine = ripmachine.RipMachine(config)
 drive_id = 0
-drive = ripmachine.get_drive(drive_id)
+
+#drive = ripmachine.get_drive(drive_id)
 #ripmachine.close(drive_id)
 ripmachine.start(0)
 while True:

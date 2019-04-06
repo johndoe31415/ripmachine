@@ -44,7 +44,11 @@ ctrlr = Controller(app, config)
 
 @app.route("/")
 def index():
-	return flask.redirect(flask.url_for("static", filename = "/html/index.html"))
+	return flask.redirect(flask.url_for("static", filename = "html/index.html"))
+
+@app.route("/names")
+def names():
+	return flask.redirect(flask.url_for("static", filename = "html/names.html"))
 
 @app.route("/api/status")
 def api_status():
@@ -75,3 +79,21 @@ def api_close(drive_id):
 def api_clear(drive_id):
 	ctrlr.ripmachine.clear(drive_id)
 	return api_status()
+
+@app.route("/api/unnamed")
+def api_unnamed():
+	return flask.jsonify(ctrlr.ripmachine.get_unnamed())
+
+@app.route("/api/image/<uuid:ripid>")
+def api_image(ripid):
+	ripid = str(ripid)
+	raw_image = ctrlr.ripmachine.get_image(ripid)
+	if raw_image is None:
+		return flask.Response("404: Image not present\n", status = 404, headers = {
+				"Content-Type":	"text/plain",
+		})
+	else:
+		return flask.Response(raw_image,
+			headers = {
+				"Content-Type":	"image/jpeg",
+			})
