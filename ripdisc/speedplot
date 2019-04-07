@@ -28,24 +28,37 @@ from FriendlyArgumentParser import FriendlyArgumentParser
 from GnuplotFile import GnuplotFile
 
 parser = FriendlyArgumentParser()
+parser.add_argument("--average-seconds", metavar = "secs", type = float, default = 0, help = "Do not plot every data point, but average over a window of n seconds.")
+parser.add_argument("--plot-progress", action = "store_true", help = "Instead of plotting the speed, plot the amount of data that is written (i.e., the integral of the speed over time). By default, no averaging is performed.")
+parser.add_argument("--smooth", action = "store_true", help = "Smooth the plot.")
 parser.add_argument("-o", "--outfile", metavar = "png_filename", default = "speedgraph.png", help = "Output plot to this file. Defaults to %(default)s.")
 parser.add_argument("statefile", metavar = "state_json", nargs = "+", type = str, help = "State file(s) to plot")
 args = parser.parse_args(sys.argv[1:])
 
 _PlotFile = collections.namedtuple("PlotFile", [ "start", "data" ])
-def read_plotfile(filename):
+def read_plotfile(filename, average_seconds):
 	with open(filename) as f:
 		data = json.load(f)
-	return _PlotFile(start = data["runtime"]["start"]["unix"], data = data["graph"])
 
-plotfiles = [ read_plotfile(filename) for filename in args.statefile ]
+	plot_data = [ ]
+	for (x, y) in data["graph"]:
+		if (len(plot_data) == 0) or ((x - plot_data[-1][0]) >= average_seconds):
+			plot_data.append((x, y))
+	return _PlotFile(start = data["runtime"]["start"]["unix"], data = plot_data)
+
+plotfiles = [ read_plotfile(filename, args.average_seconds) for filename in args.statefile ]
 min_start = min(plotfile.start for plotfile in plotfiles)
 
-gpl = GnuplotFile(xlabel = "Time (secs)", ylabel = "Data (MiB)", grid = True)
+gpl = GnuplotFile(xlabel = "Time (secs)", grid = True)
 gpl.ytickmirror = False
-
-for (plot_id, plotfile) in enumerate(plotfiles, 1):
-	data = [ (x + plotfile.start - min_start, y / 1024 / 1024) for (x, y) in plotfile.data ]
-	gpl.add_dataset(data, title = "Plot %d" % (plot_id))
-
+if args.plot_progress:
+	gpl.ylabel = "Data (MiB)"
+	for (plot_id, plotfile) in enumerate(plotfiles, 1):
+		data = [ (x + plotfile.start - min_start, y / 1024 / 1024) for (x, y) in plotfile.data ]
+		gpl.add_dataset(data, title = "Plot %d" % (plot_id), smooth = args.smooth)
+else:
+	gpl.ylabel = "CD Speed"
+	for (plot_id, plotfile) in enumerate(plotfiles, 1):
+		data = [ (x0 + plotfile.start - min_start, (y1 - y0) / (x1 - x0) / 150 / 1024) for ((x0, y0), (x1, y1)) in zip(plotfile.data, plotfile.data[1:]) ]
+		gpl.add_dataset(data, title = "Plot %d" % (plot_id), smooth = args.smooth)
 gpl.render_pngfile(args.outfile)
