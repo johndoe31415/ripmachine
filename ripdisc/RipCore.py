@@ -210,7 +210,6 @@ class RipCore():
 				total_size = 0
 			return total_size
 
-		disc_size = FileTools.get_filesize(self._drive.device)
 		self._execute_cmds(commands, progress = _determine_progress, disc_size = disc_size)
 
 	def _mock_rip(self):
