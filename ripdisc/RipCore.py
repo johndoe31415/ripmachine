@@ -144,7 +144,16 @@ class RipCore():
 		return self._rip_data_cd(destination_dir, image_filename = "dvd.iso")
 
 	def _rip_audio_track(self, track_no, destination_dir):
-		wav_file = "%s/audio_%02d.wav" % (destination_dir, track_no)
+		if track_no is not None:
+			output_filename = "%s/audio_%02d.wav" % (destination_dir, track_no)
+		else:
+			# Rip whole CD
+			if self._args.audiorip == "cdparanoia":
+				raise NotImplementedError(self._args.audiorip)
+			elif self._args.audiorip == "cdda2wav":
+				output_filename = "%s/audio" % (destination_dir)
+			else:
+				raise NotImplementedError(self._args.audiorip)
 
 		if self._args.audiorip == "cdparanoia":
 			log_summary_file = "%s/summary_%02d.txt" % (destination_dir, track_no)
@@ -166,14 +175,20 @@ class RipCore():
 #			ripcmd += [ "--force-read-speed", "1", "-Y" ]
 #		else:
 #			ripcmd += [ "--force-read-speed", "1", "-Y", "-Z" ]
-			cmd += [ str(track_no), wav_file ]
+			cmd += [ str(track_no), output_filename ]
 		elif self._args.audiorip == "cdda2wav":
 			cmd = [ "cdda2wav" ]
 			cmd += [ "-D", self._drive.device ]
 			cmd += [ "-l", "128" ]
 			if not self._args.no_paranoia:
 				cmd += [ "-paranoia" ]
-			cmd += [ "track=%d" % (track_no), wav_file ]
+			#cmd += [ "speed=4" ]
+			if track_no is not None:
+				cmd += [ "track=%d" % (track_no) ]
+			else:
+				# Batch mode, rip whole CD
+				cmd += [ "-B" ]
+			cmd += [ output_filename ]
 		else:
 			raise NotImplementedError(self._args.audiorip)
 		return cmd
@@ -184,8 +199,9 @@ class RipCore():
 		commands = [ ]
 		disc_size = 0
 		for (track_no, track) in enumerate(self._drive.media_id["tracks"]["content"], 1):
-			commands.append(self._rip_audio_track(track_no, destination_dir))
+#			commands.append(self._rip_audio_track(track_no, destination_dir))
 			disc_size += track["length_bytes"]
+		commands.append(self._rip_audio_track(None, destination_dir))
 
 		def _determine_progress():
 			total_size = 0
