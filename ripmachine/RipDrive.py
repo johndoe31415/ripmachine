@@ -56,6 +56,7 @@ class RipDrive():
 		if self._status in [ RipStatus.Aborted, RipStatus.Completed, RipStatus.Errored ]:
 			self._status = RipStatus.Idle
 			self._error = None
+			self._rip_target = None
 			self._current_rip_id = None
 			return True
 		else:
@@ -63,7 +64,19 @@ class RipDrive():
 
 	def abort(self):
 		if self._proc is not None:
-			self._proc.kill()
+			self._proc.terminate()
+			print("TERM")
+			try:
+				print("WAIT")
+				self._proc.wait(timeout = 1.0)
+				print("DONE")
+			except subprocess.TimeoutExpired:
+				print("KILL")
+				self._proc.kill()
+			try:
+				self._proc.wait(timeout = 1.0)
+			except subprocess.TimeoutExpired:
+				pass
 		self._proc = None
 		self._status = RipStatus.Aborted
 		self._state_change_callback(self, self._status)
@@ -119,6 +132,7 @@ class RipDrive():
 			"speed":				0,
 			"error":				self._error,
 			"track":				None,
+			"ripid":				self._current_rip_id,
 		}
 		status = self._read_status_json()
 		if (status is not None) and ("progress" in status) and (status["progress"] is not None):

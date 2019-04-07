@@ -24,12 +24,14 @@ import json
 import shutil
 import datetime
 import subprocess
+import signal
 import base64
 import time
 from CDDrive import CDDrive, MediaType
 from Tools import FileTools
 from SpeedAverager import SpeedAverager
 from SpeedMonitor import SpeedMonitor
+from DeathSig import set_pdeathsig
 
 class RipCore():
 	def __init__(self, args):
@@ -99,7 +101,7 @@ class RipCore():
 				output = None
 			else:
 				output = subprocess.DEVNULL
-			proc = subprocess.Popen(command, stdout = output, stderr = output)
+			proc = subprocess.Popen(command, stdout = output, stderr = output, preexec_fn = lambda: set_pdeathsig(signal.SIGKILL))
 			while True:
 				try:
 					result = proc.wait(self._args.update_delay)
@@ -139,7 +141,7 @@ class RipCore():
 
 		# Try to unlock DVD using mplayer before copying data
 		unlock_cmd = [ "mplayer", "-vo", "none", "-ao", "none", "-dvd-device", self._drive.device, "dvd://" ]
-		subprocess.check_call(unlock_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL)
+		subprocess.check_call(unlock_cmd, stdout = subprocess.DEVNULL, stderr = subprocess.DEVNULL, preexec_fn = lambda: set_pdeathsig(signal.SIGKILL))
 
 		return self._rip_data_cd(destination_dir, image_filename = "dvd.iso")
 

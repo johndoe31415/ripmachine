@@ -60,6 +60,11 @@ class RipMachine():
 	def clear(self, drive_id):
 		self._drives[drive_id].clear()
 
+	def retry(self, drive_id, failed_rip_id):
+		output_dir = self._config.get_directory("%s/rips/%s" % (self._work_dir, datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")))
+		rip_id = self._db.retry(output_dir, failed_rip_id)
+		self._drives[drive_id].start(output_dir, rip_id)
+
 	@property
 	def drives(self):
 		return iter(self._drives)

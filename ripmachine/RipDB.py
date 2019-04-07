@@ -37,7 +37,8 @@ class RipDB():
 				start_utc timestamp NOT NULL,
 				end_utc timestamp NULL,
 				target_directory varchar NOT NULL,
-				status varchar NOT NULL
+				status varchar NOT NULL,
+				imageid uuid NULL
 			);
 			""")
 			self._conn.commit()
@@ -49,7 +50,7 @@ class RipDB():
 		with contextlib.suppress(sqlite3.OperationalError):
 			self._cursor.execute("""
 			CREATE TABLE ripimages (
-				ripid uuid PRIMARY KEY,
+				imageid uuid PRIMARY KEY,
 				image blob NOT NULL
 			);
 			""")
@@ -69,20 +70,51 @@ class RipDB():
 	def _now(self):
 		return datetime.datetime.utcnow().strftime("%Y-%m-%DT%H:%M:%SZ")
 
+	def __create_image(self, image):
+		imageid = str(uuid.uuid4())
+		self._cursor.execute("INSERT INTO ripimages (imageid, image) VALUES (?, ?);", (imageid, image))
+		return imageid
+
+	def __create(self, output_dir, imageid = None):
+		ripid = str(uuid.uuid4())
+		now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
+		self._cursor.execute("INSERT INTO rips (ripid, start_utc, target_directory, status, imageid) VALUES (?, ?, ?, 'running', ?);", (ripid, now, output_dir, imageid))
+		self._conn.commit()
+		return ripid
+
 	def create(self, output_dir, image = None):
 		with self._lock:
-			ripid = str(uuid.uuid4())
-			now = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
-			self._cursor.execute("INSERT INTO rips (ripid, start_utc, target_directory, status) VALUES (?, ?, ?, 'running');", (ripid, now, output_dir))
 			if image is not None:
-				self._cursor.execute("INSERT INTO ripimages (ripid, image) VALUES (?, ?);", (ripid, image))
-			self._conn.commit()
-			return ripid
+				imageid = self.__create_image(image)
+			else:
+				imageid = None
+			return self.__create(output_dir, imageid)
 
 	def finish(self, ripid, status):
 		with self._lock:
 			self._cursor.execute("UPDATE rips SET end_utc = ?, status = ? WHERE ripid = ?", (self._now(), status, ripid))
 			self._conn.commit()
+
+	def retry(self, output_dir, failed_ripid):
+		with self._lock:
+			row = self._cursor.execute("SELECT status, imageid FROM rips WHERE ripid = ?;", (failed_ripid, )).fetchone()
+			if row is None:
+				raise Exception("No such rip id")
+				return None
+			(status, imageid) = row
+			if status not in [ "aborted", "errored" ]:
+				# Resume not permitted
+				raise Exception("Resume not permitted, rip status was '%s'" % (status))
+
+			new_ripid = self.__create(output_dir, imageid)
+
+			# Copy metadata (if there is any)
+			meta = self._cursor.execute("SELECT artist, album FROM ripmeta WHERE ripid = ?;", (failed_ripid, )).fetchone()
+			if meta is not None:
+				self._cursor.execute("INSERT INTO ripmeta (ripid, artist, album) VALUES (?, ?, ?);", (new_ripid, meta[0], meta[1]))
+				self._conn.commit()
+
+			return new_ripid
 
 	def get_unnamed(self):
 		with self._lock:
@@ -92,13 +124,16 @@ class RipDB():
 					ORDER BY start_utc ASC
 			""").fetchall()
 
+	def __get_image(self, ripid):
+		row = self._cursor.execute("SELECT image FROM ripimages WHERE ripid = ?;", (ripid, )).fetchone()
+		if row is not None:
+			return row[0]
+		else:
+			return None
+
 	def get_image(self, ripid):
 		with self._lock:
-			row = self._cursor.execute("SELECT image FROM ripimages WHERE ripid = ?;", (ripid, )).fetchone()
-			if row is not None:
-				return row[0]
-			else:
-				return None
+			return self.__get_image(ripid)
 
 	def set_name(self, ripid, values):
 		with self._lock:

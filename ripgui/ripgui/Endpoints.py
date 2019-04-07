@@ -60,6 +60,12 @@ def api_start(drive_id):
 	ctrlr.ripmachine.start(drive_id, image = image)
 	return api_status()
 
+@app.route("/api/retry/<int:drive_id>/<uuid:failed_ripid>")
+def api_retry(drive_id, failed_ripid):
+	failed_ripid = str(failed_ripid)
+	ctrlr.ripmachine.retry(drive_id, failed_ripid)
+	return api_status()
+
 @app.route("/api/abort/<int:drive_id>")
 def api_abort(drive_id):
 	ctrlr.ripmachine.abort(drive_id)

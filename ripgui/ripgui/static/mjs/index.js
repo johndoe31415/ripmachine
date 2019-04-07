@@ -62,10 +62,15 @@ class RipDrive {
 			}
 			*/
 		});
+		file.value = "";
 	}
 
 	_on_stop() {
 		this._fetch_status("/api/abort/" + this._drive_id);
+	}
+
+	_on_retry() {
+		this._fetch_status("/api/retry/" + this._drive_id + "/" + this._status_data["ripid"]);
 	}
 
 	_on_open() {
@@ -96,6 +101,7 @@ class RipDrive {
 
 		drive_div.querySelector("#btn_start").addEventListener("click", () => this._on_start());
 		drive_div.querySelector("#btn_stop").addEventListener("click", () => this._on_stop());
+		drive_div.querySelector("#btn_retry").addEventListener("click", () => this._on_retry());
 		drive_div.querySelector("#btn_open").addEventListener("click", () => this._on_open());
 		drive_div.querySelector("#btn_close").addEventListener("click", () => this._on_close());
 		drive_div.querySelector("#btn_clear").addEventListener("click", () => this._on_clear());
@@ -174,11 +180,11 @@ class RipDrive {
 		} else if (this._status_data["status"] == "aborted") {
 			this._set_status_icon("err");
 			action_span.innerHTML = "aborted";
-			this._enable_ui_buttons([ "clear" ]);
+			this._enable_ui_buttons([ "retry", "clear" ]);
 		} else if (this._status_data["status"] == "errored") {
 			this._set_status_icon("err");
 			action_span.innerHTML = "error: " + this._status_data["error"];
-			this._enable_ui_buttons([ "clear" ]);
+			this._enable_ui_buttons([ "retry", "clear" ]);
 		} else if (this._status_data["status"] == "completed") {
 			this._set_status_icon("ok");
 			action_span.innerHTML = "completed";

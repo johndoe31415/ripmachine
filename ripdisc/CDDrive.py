@@ -53,14 +53,16 @@ class CDMedium():
 		if mock_data is None:
 			self._rawinfo = { }
 			self._check()
-#			with open("mock_output", "w") as f:
-#				json.dump({ key: base64.b64encode(value).decode("ascii") for (key, value) in self._rawinfo.items() }, f)
 		else:
 			self._rawinfo = mock_data
 
 		self._parse_infos()
 		self._media_type = self._determine_media_type()
 		self._media_id = self._determine_media_id()
+
+	def write_raw_info(self, filename):
+		with open(filename, "w") as f:
+			json.dump({ key: base64.b64encode(value).decode("ascii") for (key, value) in self._rawinfo.items() }, f)
 
 	@property
 	def raw_info(self):
@@ -301,7 +303,11 @@ class CDDrive():
 		self._media_type = medium.media_type
 		self._media_id = medium.media_id
 		if self._media_type == MediaType.Unknown:
-			raise Exception("Unknown disc mode: %s" % (medium.raw_info))
+			if len(medium.raw_info) == 0:
+				raise Exception("No medium detected.")
+			else:
+				medium.write_raw_info("/tmp/unknown_disc_mode.json")
+				raise Exception("Unknown disc mode.")
 
 	def __str__(self):
 		return "Drive<%s: %s with %s (%s)>" % (self.device, str(self.drive_id), self.media_type.name, str(self.media_id))
