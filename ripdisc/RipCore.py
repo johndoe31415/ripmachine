@@ -29,6 +29,7 @@ import time
 from CDDrive import CDDrive, MediaType
 from Tools import FileTools
 from SpeedAverager import SpeedAverager
+from SpeedMonitor import SpeedMonitor
 
 class RipCore():
 	def __init__(self, args):
@@ -47,6 +48,7 @@ class RipCore():
 		self._state = "idle"
 		self._error = None
 		self._progress = None
+		self._speed_monitor = SpeedMonitor()
 		self._start_utc = datetime.datetime.utcnow()
 
 	def write_status(self):
@@ -61,6 +63,7 @@ class RipCore():
 			"state": self._state,
 			"error": self._error,
 			"progress": self._progress,
+			"graph": self._speed_monitor.data,
 			"runtime": {
 				"start": {
 					"ts_utc":	self._start_utc.strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -109,6 +112,7 @@ class RipCore():
 					speed.add(pos)
 					self._progress["bytes_read"] = pos
 					self._progress["speed"] = speed.real_speed
+					self._speed_monitor.record(pos)
 					self.write_status()
 		self._progress["bytes_read"] = progress()
 		self.write_status()
@@ -141,12 +145,17 @@ class RipCore():
 
 	def _rip_audio_track(self, track_no, destination_dir):
 		wav_file = "%s/audio_%02d.wav" % (destination_dir, track_no)
-		log_summary_file = "%s/summary_%02d.txt" % (destination_dir, track_no)
-		log_debug_file = "%s/debug_%02d.txt" % (destination_dir, track_no)
-		cmd = [ "cdparanoia" ]
-		cmd += [ "--force-cdrom-device=%s" % (self._drive.device) ]
-		cmd += [ "--log-summary=%s" % (log_summary_file) ]
-		cmd += [ "--log-debug=%s" % (log_debug_file) ]
+
+		if self._args.audiorip == "cdparanoia":
+			log_summary_file = "%s/summary_%02d.txt" % (destination_dir, track_no)
+			log_debug_file = "%s/debug_%02d.txt" % (destination_dir, track_no)
+			cmd = [ "cdparanoia" ]
+			cmd += [ "--force-cdrom-device=%s" % (self._drive.device) ]
+			cmd += [ "--log-summary=%s" % (log_summary_file) ]
+			cmd += [ "--log-debug=%s" % (log_debug_file) ]
+			if self._args.no_paranoia:
+				cmd += [ "--disable-paranoia", "--disable-extra-paranoia" ]
+
 #		if tryno <= 1:
 #			pass
 #		elif tryno <= 2:
@@ -157,7 +166,16 @@ class RipCore():
 #			ripcmd += [ "--force-read-speed", "1", "-Y" ]
 #		else:
 #			ripcmd += [ "--force-read-speed", "1", "-Y", "-Z" ]
-		cmd += [ str(track_no), wav_file ]
+			cmd += [ str(track_no), wav_file ]
+		elif self._args.audiorip == "cdda2wav":
+			cmd = [ "cdda2wav" ]
+			cmd += [ "-D", self._drive.device ]
+			cmd += [ "-l", "128" ]
+			if not self._args.no_paranoia:
+				cmd += [ "-paranoia" ]
+			cmd += [ "track=%d" % (track_no), wav_file ]
+		else:
+			raise NotImplementedError(self._args.audiorip)
 		return cmd
 
 	def _rip_audio_cd(self, destination_dir):
