@@ -162,27 +162,19 @@ class RipCore():
 			cmd += [ "--force-cdrom-device=%s" % (self._drive.device) ]
 			cmd += [ "--log-summary=%s" % (log_summary_file) ]
 			cmd += [ "--log-debug=%s" % (log_debug_file) ]
-			if self._args.no_paranoia:
+			if self._args.fast_rip:
 				cmd += [ "--disable-paranoia", "--disable-extra-paranoia" ]
-
-#		if tryno <= 1:
-#			pass
-#		elif tryno <= 2:
-#		cmd += [ "--force-read-speed", "2" ]
-#		elif tryno <= 3:
-#			ripcmd += [ "--force-read-speed", "1" ]
-#		elif tryno <= 4:
-#			ripcmd += [ "--force-read-speed", "1", "-Y" ]
-#		else:
-#			ripcmd += [ "--force-read-speed", "1", "-Y", "-Z" ]
+#			cmd += [ "--force-read-speed", "2" ]
+#			cmd += [ "--force-read-speed", "1" ]
+#			cmd += [ "--force-read-speed", "1", "-Y" ]
+#			cmd += [ "--force-read-speed", "1", "-Y", "-Z" ]
 			cmd += [ str(track_no), output_filename ]
 		elif self._args.audiorip == "cdda2wav":
 			cmd = [ "cdda2wav" ]
 			cmd += [ "-D", self._drive.device ]
 			cmd += [ "-l", "128" ]
-			if not self._args.no_paranoia:
+			if not self._args.fast_rip:
 				cmd += [ "-paranoia" ]
-			#cmd += [ "speed=4" ]
 			if track_no is not None:
 				cmd += [ "track=%d" % (track_no) ]
 			else:
@@ -199,7 +191,6 @@ class RipCore():
 		commands = [ ]
 		disc_size = 0
 		for (track_no, track) in enumerate(self._drive.media_id["tracks"]["content"], 1):
-#			commands.append(self._rip_audio_track(track_no, destination_dir))
 			disc_size += track["length_bytes"]
 		commands.append(self._rip_audio_track(None, destination_dir))
 

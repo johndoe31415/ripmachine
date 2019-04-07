@@ -75,9 +75,11 @@ class RipDrive():
 		self._rip_target = output_directory
 		self._status = RipStatus.Running
 		ripdisc_binary = self._config.get_binary("ripdisc")
-		cmd = [ ripdisc_binary, "-f", "-m", "audio", "--callback-id", rip_id ]
+		cmd = [ ripdisc_binary, "-f", "--callback-id", rip_id ]
 		if self._config.mock_mode:
 			cmd += [ "--mock", "audio" ]
+		if self._config.fast_rip:
+			cmd += [ "--fast-rip" ]
 		cmd += [ self._dev, output_directory ]
 		self._proc = subprocess.Popen(cmd)
 

@@ -1,11 +1,12 @@
 {
 	"options": {
-		"mock":		true
+		"mock":				true,
+		"fast_rip":			true
 	},
 	"directories": {
 		"_work":			"~/ripmachine/work",
 		"work":				"/tmp/ripmachine"
-	},
+	},	
 	"binaries": {
 		"ripdisc":			"${configdir}/ripdisc/ripdisc"
 	},

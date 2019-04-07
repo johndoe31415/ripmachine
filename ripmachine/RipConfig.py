@@ -54,5 +54,9 @@ class RipConfig():
 		return directory
 
 	@property
+	def fast_rip(self):
+		return self._config.get("options", { }).get("fast_rip", False)
+
+	@property
 	def mock_mode(self):
 		return self._config.get("options", { }).get("mock", False)
