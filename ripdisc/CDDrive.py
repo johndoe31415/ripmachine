@@ -50,11 +50,15 @@ class CDMedium():
 
 	def __init__(self, drive, mock_data = None):
 		self._drive = drive
+		self._parsedinfo = { }
 		if mock_data is None:
 			self._rawinfo = { }
 			self._check()
 		else:
 			self._rawinfo = mock_data
+#		for (key, value) in sorted(self._parsedinfo.items()):
+#			print("%s = %s" % (key, value))
+#		self.write_raw_info("mock_new.json")
 
 		self._parse_infos()
 		self._media_type = self._determine_media_type()
@@ -62,7 +66,13 @@ class CDMedium():
 
 	def write_raw_info(self, filename):
 		with open(filename, "w") as f:
-			json.dump({ key: base64.b64encode(value).decode("ascii") for (key, value) in self._rawinfo.items() }, f)
+			def default_encode(obj):
+				if isinstance(obj, bytes):
+					return {
+						"type":		"bytes",
+						"value":	base64.b64encode(obj).decode("ascii"),
+					}
+			json.dump(self._rawinfo, f, default = default_encode)
 
 	@property
 	def raw_info(self):
@@ -138,22 +148,22 @@ class CDMedium():
 		return encoded
 
 	def _parse_infos(self):
-		self._rawinfo = { key: value.decode("utf-8") for (key, value) in self._rawinfo.items() }
+		rawinfo_str = { key: value.decode("utf-8") for (key, value) in self._rawinfo.items() }
 
-		if "cdinfo" in self._rawinfo:
-			match = self._CDINFO1_REGEX.search(self._rawinfo["cdinfo"])
+		if "cdinfo" in rawinfo_str:
+			match = self._CDINFO1_REGEX.search(rawinfo_str["cdinfo"])
 			if match:
-				self._rawinfo["cdinfo-discmode"] = match.groupdict()
+				self._parsedinfo["cdinfo-discmode"] = match.groupdict()
 
-			match = self._CDINFO2_REGEX.search(self._rawinfo["cdinfo"])
+			match = self._CDINFO2_REGEX.search(rawinfo_str["cdinfo"])
 			if match:
-				self._rawinfo["cdinfo-app-vol"] = match.groupdict()
+				self._parsedinfo["cdinfo-app-vol"] = match.groupdict()
 
-		if "wodim" in self._rawinfo:
+		if "wodim" in rawinfo_str:
 			tracks = {
 				"content": [ ],
 			}
-			for track in self._WODIM_TRACK_INFO_REGEX.finditer(self._rawinfo["wodim"]):
+			for track in self._WODIM_TRACK_INFO_REGEX.finditer(rawinfo_str["wodim"]):
 				track = track.groupdict()
 				track_info = { "offset": int(track["offset"]) }
 				if track["trackno"] == "lout":
@@ -190,9 +200,9 @@ class CDMedium():
 					track["length_bytes"] = track["length"] * 2352
 					track["length_seconds"] = track["length"] / 75
 
-			self._rawinfo["tracks"] = tracks
-			self._rawinfo["id-musicbrainz"] = self._compute_musicbrainz_ids(tracks)
-			self._rawinfo["id-cddb"] = self._compute_cddb_id(tracks)
+			self._parsedinfo["tracks"] = tracks
+			self._parsedinfo["id-musicbrainz"] = self._compute_musicbrainz_ids(tracks)
+			self._parsedinfo["id-cddb"] = self._compute_cddb_id(tracks)
 
 	def _check(self):
 		if self._drive.can_handle_media_type([ MediaType.AudioCD ]):
@@ -207,10 +217,10 @@ class CDMedium():
 		media_type = MediaType.Unknown
 		if "cdparanoia" in self._rawinfo:
 			media_type = MediaType.AudioCD
-		elif "cdinfo-discmode" in self._rawinfo:
-			if self._rawinfo["cdinfo-discmode"]["discmode"] == "CD-DATA (Mode 1)":
+		elif "cdinfo-discmode" in self._parsedinfo:
+			if self._parsedinfo["cdinfo-discmode"]["discmode"] == "CD-DATA (Mode 1)":
 				media_type = MediaType.DataCD
-			elif self._rawinfo["cdinfo-discmode"]["discmode"] == "DVD-R":
+			elif self._parsedinfo["cdinfo-discmode"]["discmode"] == "DVD-R":
 				media_type = MediaType.DVD
 		return media_type
 
@@ -218,21 +228,21 @@ class CDMedium():
 		media_id = { "text": "Media ID not available for medium of type '%s'." % (self.media_type.name) }
 		if self.media_type in [ MediaType.DVD, MediaType.DataCD ]:
 			media_id = { }
-			if "cdinfo-app-vol" in self._rawinfo:
+			if "cdinfo-app-vol" in self._parsedinfo:
 				media_id.update({
-					"application":	self._rawinfo["cdinfo-app-vol"]["application"],
-					"volume":		self._rawinfo["cdinfo-app-vol"]["volume"],
+					"application":	self._parsedinfo["cdinfo-app-vol"]["application"],
+					"volume":		self._parsedinfo["cdinfo-app-vol"]["volume"],
 				})
-			if "cdinfo-discmode" in self._rawinfo:
+			if "cdinfo-discmode" in self._parsedinfo:
 				media_id.update({
-					"disc_mode":	self._rawinfo["cdinfo-discmode"]["discmode"],
+					"disc_mode":	self._parsedinfo["cdinfo-discmode"]["discmode"],
 				})
 		elif self.media_type == MediaType.AudioCD:
 			media_id = {
-				"tracks":		self._rawinfo["tracks"],
+				"tracks":		self._parsedinfo["tracks"],
 				"ids": {
-					"musicbrainz":	self._rawinfo["id-musicbrainz"],
-					"cddb":			self._rawinfo["id-cddb"],
+					"musicbrainz":	self._parsedinfo["id-musicbrainz"],
+					"cddb":			self._parsedinfo["id-cddb"],
 				},
 			}
 		return media_id

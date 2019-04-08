@@ -45,7 +45,12 @@ class RipCore():
 			dirname = os.path.dirname(__file__)
 			with open(dirname + "/mock_" + self._args.mock + ".json") as f:
 				mock_data = json.load(f)
-			mock_data = { key: base64.b64decode(value) for (key, value) in mock_data.items() }
+			def decode(value):
+				if isinstance(value, dict) and (value.get("type") == "bytes"):
+					return base64.b64decode(value["value"])
+				else:
+					return value
+			mock_data = { key: decode(value) for (key, value) in mock_data.items() }
 			self._drive = CDDrive(self._args.drive, mock_data = mock_data, verbose = self._args.verbose)
 		self._state = "idle"
 		self._error = None

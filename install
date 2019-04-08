@@ -31,6 +31,8 @@ ui_service_file = service_dir + "/ripmachine-ui.service"
 with contextlib.suppress(FileExistsError):
 	os.makedirs(service_dir)
 
+uwsgi_bin = subprocess.check_output([ "which", "uwsgi" ]).decode().rstrip("\r\n")
+
 with open(ui_service_file, "w") as f:
 	print("[Unit]", file = f)
 	print("Description=Ripmachine UI", file = f)
@@ -38,7 +40,7 @@ with open(ui_service_file, "w") as f:
 	print(file = f)
 	print("[Service]", file = f)
 	print("Type=simple", file = f)
-	print("ExecStart=/usr/bin/uwsgi ripgui_dev.ini", file = f)
+	print("ExecStart=%s ripgui_dev.ini" % (uwsgi_bin), file = f)
 	print("WorkingDirectory=%s/ripgui" % (install_dir), file = f)
 	print(file = f)
 	print("[Install]", file = f)
