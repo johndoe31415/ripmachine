@@ -78,8 +78,9 @@ class RipMachine():
 		return [
 			{
 				"ripid":		item[0],
-				"start_utc":	item[1],
-				"status":		item[2],
+				"imageid":		item[1],
+				"start_utc":	item[2],
+				"status":		item[3],
 			} for item in self._db.get_unnamed()
 		]
 

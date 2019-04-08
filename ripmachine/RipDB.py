@@ -118,22 +118,19 @@ class RipDB():
 
 	def get_unnamed(self):
 		with self._lock:
-			return self._cursor.execute("""SELECT rips.ripid, start_utc, status FROM rips
+			return self._cursor.execute("""SELECT rips.ripid, rips.imageid, start_utc, status FROM rips
 					LEFT JOIN ripmeta ON rips.ripid = ripmeta.ripid
 					WHERE ((status = 'running') OR (status = 'completed')) AND (ripmeta.ripid IS NULL)
 					ORDER BY start_utc ASC
 			""").fetchall()
 
-	def __get_image(self, ripid):
-		row = self._cursor.execute("SELECT image FROM ripimages WHERE ripid = ?;", (ripid, )).fetchone()
-		if row is not None:
-			return row[0]
-		else:
-			return None
-
-	def get_image(self, ripid):
+	def get_image(self, imageid):
 		with self._lock:
-			return self.__get_image(ripid)
+			row = self._cursor.execute("SELECT image FROM ripimages WHERE imageid = ?;", (imageid, )).fetchone()
+			if row is not None:
+				return row[0]
+			else:
+				return None
 
 	def set_name(self, ripid, values):
 		with self._lock:

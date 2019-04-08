@@ -49,7 +49,7 @@ class NameTable {
 	_apply_entry_template(entry_div, entry_template, entry_data) {
 		entry_div.innerHTML = entry_template;
 		entry_div.querySelector("#riptime").innerHTML = entry_data["start_utc"];
-		entry_div.querySelector("#ripimg").src = "/api/image/" + entry_data["ripid"];
+		entry_div.querySelector("#ripimg").src = "/api/image/" + entry_data["imageid"];
 		entry_div.querySelector("#btn_add").addEventListener("click", () => this._add(entry_div, entry_data["ripid"]));
 	}
 
