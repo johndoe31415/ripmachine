@@ -1,0 +1,47 @@
+#!/usr/bin/python3
+#	ripmachine - GUI-driven CD/DVD ripper
+#	Copyright (C) 2019-2019 Johannes Bauer
+#
+#	This file is part of ripmachine.
+#
+#	ripmachine is free software; you can redistribute it and/or modify
+#	it under the terms of the GNU General Public License as published by
+#	the Free Software Foundation; this program is ONLY licensed under
+#	version 3 of the License, later versions are explicitly excluded.
+#
+#	ripmachine is distributed in the hope that it will be useful,
+#	but WITHOUT ANY WARRANTY; without even the implied warranty of
+#	MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#	GNU General Public License for more details.
+#
+#	You should have received a copy of the GNU General Public License
+#	along with ripmachine; if not, write to the Free Software
+#	Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+#
+#	Johannes Bauer <JohannesBauer@gmx.de>
+
+import os
+import contextlib
+import subprocess
+
+install_dir = os.path.realpath(os.path.dirname(__file__))
+service_dir = os.path.expanduser("~/.local/share/systemd/user")
+ui_service_file = service_dir + "/ripmachine-ui.service"
+
+with contextlib.suppress(FileExistsError):
+	os.makedirs(service_dir)
+
+with open(ui_service_file, "w") as f:
+	print("[Unit]", file = f)
+	print("Description=Ripmachine UI", file = f)
+	print("After=network-online.target", file = f)
+	print(file = f)
+	print("[Service]", file = f)
+	print("Type=simple", file = f)
+	print("ExecStart=/usr/bin/uwsgi ripgui_dev.ini", file = f)
+	print("WorkingDirectory=%s/ripgui" % (install_dir), file = f)
+	print(file = f)
+	print("[Install]", file = f)
+	print("WantedBy=default.target", file = f)
+
+subprocess.check_call([ "systemctl", "--user", "enable", "ripmachine-ui.service" ])
