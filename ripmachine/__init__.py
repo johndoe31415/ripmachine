@@ -21,3 +21,4 @@
 
 from .RipMachine import RipMachine
 from .RipConfig import RipConfig
+from .RipDB import RipDB

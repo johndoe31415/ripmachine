@@ -33,7 +33,7 @@ class RipMachine():
 	def __init__(self, config):
 		self._config = config
 		self._work_dir = self._config.get_directory_by_name("work")
-		self._db = RipDB(self._work_dir + "/ripmachine.sqlite3")
+		self._db = RipDB(self._config.ripdb_filename)
 		self._drives = [ RipDrive(self._config, drive_data, self._state_change_callback) for drive_data in config.drives ]
 
 	def _state_change_callback(self, drive, new_state):

@@ -43,27 +43,37 @@ class CompletionHandle():
 			self._cond.notify_all()
 
 class JobServer():
-	def __init__(self, processes = None):
+	def __init__(self, processes = None, verbose = False):
 		if processes is None:
 			processes = multiprocessing.cpu_count()
+		self._verbose = verbose
 		self._lock = threading.Lock()
 		self._process_count = processes
 		self._process_sem = threading.Semaphore(self._process_count)
-		self._thread_count = threading.Semaphore(1000)
+		self._scheduled_count = 0
+
+	@property
+	def busy(self):
+		with self._lock:
+			return self._scheduled_count >= self._process_count
 
 	def _run_function(self, cmd, chandle):
 		self._process_sem.acquire()
 		try:
+			if self._verbose:
+				print("Run: %s" % (" ".join(cmd)))
 			subprocess.check_call(cmd)
 			chandle.complete(True)
 		except subprocess.CalledProcessError:
 			chandle.complete(False)
 		finally:
 			self._process_sem.release()
-			self._thread_count.release()
+			with self._lock:
+				self._scheduled_count -= 1
 
 	def run(self, cmd):
-		self._thread_count.acquire()
+		with self._lock:
+			self._scheduled_count += 1
 		chandle = CompletionHandle()
 		thread = threading.Thread(target = self._run_function, args = (cmd, chandle), daemon = True)
 		thread.start()

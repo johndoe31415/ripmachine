@@ -54,6 +54,10 @@ class RipConfig():
 		return directory
 
 	@property
+	def ripdb_filename(self):
+		return self.get_directory_by_name("work") + "/ripmachine.sqlite3"
+
+	@property
 	def fast_rip(self):
 		return self._config.get("options", { }).get("fast_rip", False)
 

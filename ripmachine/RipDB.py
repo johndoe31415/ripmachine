@@ -140,3 +140,8 @@ class RipDB():
 			else:
 				self._cursor.execute("UPDATE ripmeta SET artist = ?, album = ? WHERE ripid = ?;", (values.get("artist", ""), values.get("album", ""), ripid))
 			self._conn.commit()
+
+	def get_finished_rips(self):
+		with self._lock:
+			rows = self._cursor.execute("SELECT ripid, target_directory FROM rips WHERE status = 'complete';").fetchall()
+			return rows
