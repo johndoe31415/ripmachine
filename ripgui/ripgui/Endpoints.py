@@ -108,6 +108,5 @@ def api_image(ripid):
 def api_setname(ripid):
 	ripid = str(ripid)
 	data = flask.request.json
-	print(data)
 	ctrlr.ripmachine.set_name(ripid, data)
 	return flask.jsonify({ "status": "ok" })

@@ -68,7 +68,7 @@ class RipDB():
 		self._lock = threading.Lock()
 
 	def _now(self):
-		return datetime.datetime.utcnow().strftime("%Y-%m-%DT%H:%M:%SZ")
+		return datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%SZ")
 
 	def __create_image(self, image):
 		imageid = str(uuid.uuid4())
