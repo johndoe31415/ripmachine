@@ -25,6 +25,7 @@ import subprocess
 import hashlib
 import base64
 import json
+import time
 
 class MediaType(enum.IntEnum):
 	AudioCD = 0
@@ -56,6 +57,7 @@ class CDMedium():
 			self._check()
 		else:
 			self._rawinfo = mock_data
+#		print(self._rawinfo)
 #		for (key, value) in sorted(self._parsedinfo.items()):
 #			print("%s = %s" % (key, value))
 #		self.write_raw_info("mock_new.json")
@@ -91,8 +93,9 @@ class CDMedium():
 			if self._drive.verbose >= 1:
 				print("Trying to determine audio TOC")
 			self._rawinfo["cdparanoia"] = subprocess.check_output([ "cdparanoia", "-Q", "-d", self._drive.device ], stderr = subprocess.STDOUT)
+			return True
 		except subprocess.CalledProcessError:
-			pass
+			return False
 
 	def _check_wodim(self):
 		try:
@@ -204,9 +207,16 @@ class CDMedium():
 			self._parsedinfo["id-musicbrainz"] = self._compute_musicbrainz_ids(tracks)
 			self._parsedinfo["id-cddb"] = self._compute_cddb_id(tracks)
 
+	def _retry(self, function):
+		for retry in range(3):
+			success = function()
+			if success:
+				break
+			time.sleep(1)
+
 	def _check(self):
 		if self._drive.can_handle_media_type([ MediaType.AudioCD ]):
-			self._check_cdparanoia()
+			self._retry(self._check_cdparanoia)
 			self._check_wodim()
 
 		if self._drive.can_handle_media_type([ MediaType.DataCD, MediaType.DVD, MediaType.BluRay ]):
