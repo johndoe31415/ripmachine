@@ -22,7 +22,10 @@
 
 import time
 import sys
+import json
+import threading
 import multiprocessing
+import shutil
 from ripmachine import RipConfig, RipDB
 from JobServer import JobServer
 from FriendlyArgumentParser import FriendlyArgumentParser
@@ -50,14 +53,61 @@ class RipPostProcessor():
 		self._db = RipDB(self._config.ripdb_filename)
 		self._active = set()
 
-	def _start_rip(self, ripid, target_dir):
-		print(ripid)
+	def _start_conversion_audio(self, ripid, raw_data_dir, state, meta):
+		output_suffix = [ ]
+		if "artist" in meta:
+			output_suffix.append(meta["artist"])
+		if "album" in meta:
+			output_suffix.append(meta["album"])
+		if len(output_suffix) > 0:
+			output_suffix = " - ".join(output_suffix)
+		else:
+			output_suffix = "Unnamed"
+
+		full_outdir = self._config.get_conversion_directory(output_suffix)
+
+		cmds = [ ]
+		for (trackno, infilename) in enumerate(state["files"], 1):
+			full_infilename = raw_data_dir + "/" + infilename
+			full_outfilename = full_outdir + "/%02d %s.flac" % (trackno, output_suffix)
+			cmd = [ "flac" ]
+			if "artist" in meta:
+				cmd += [ "-T", "artist=%s" % (meta["artist"]) ]
+			if "album" in meta:
+				cmd += [ "-T", "album=%s" % (meta["album"]) ]
+			cmd += [ "-T", "trackno=%d" % (trackno) ]
+			cmd += [ "-T", "tracktotal=%d" % (len(state["files"])) ]
+			cmd += [ full_infilename, "-o", full_outfilename ]
+			cmds.append(cmd)
+
+		handles = self._jobserver.runall(cmds)
+		all_successful = all(handle.wait() for handle in handles)
+		if not all_successful:
+			print("Conversion of %s / %s failed. Not all subprocesses exited successfully." % (ripid, str(meta)))
+			shutil.rmtree(full_outdir)
+			return
+		self._db.mark_converted(ripid)
+
+	def _start_conversion(self, ripid, raw_data_dir, meta):
+		print("Starting conversion of RIP %s raw data in %s / meta %s" % (ripid, raw_data_dir, meta))
+		with open(raw_data_dir + "/state.json") as f:
+			state = json.load(f)
+		if state["medium"]["type"] == "AudioCD":
+			threading.Thread(target = self._start_conversion_audio, args = (ripid, raw_data_dir, state, meta), daemon = True).start()
+		else:
+			raise NotImplementedError(state["medium"]["type"])
 
 	def _check_new_jobs(self):
-		for (ripid, target_dir) in self._db.get_finished_rips():
-			self._start_rip(ripid, target_dir)
-			if self._jobserver.busy:
-				break
+		for (ripid, target_dir, artist, album) in self._db.get_finished_rips():
+			if ripid not in self._active:
+				self._active.add(ripid)
+				meta = {
+					"artist":	artist,
+					"album":	album,
+				}
+				self._start_conversion(ripid, target_dir, meta)
+				if self._jobserver.busy:
+					break
 
 	def run(self):
 		try:

@@ -43,6 +43,19 @@ class RipConfig():
 	def get_directory_by_name(self, name):
 		return self.get_directory(self._config["directories"][name])
 
+	def get_conversion_directory(self, name):
+		for i in range(1000):
+			dirname = self.get_directory_by_name("converted") + "/" + name
+			if i > 0:
+				dirname += "_%03d" % (i)
+			# mkdir is atomic, so try and continue on failure
+			try:
+				os.makedirs(dirname)
+				return dirname
+			except FileExistsError:
+				pass
+		raise Exception("All attempts to finding a free directory name for '%s' failed." % (name))
+
 	def get_file(self, filename):
 		filename = os.path.realpath(os.path.expanduser(self._substitute(filename)))
 		return filename

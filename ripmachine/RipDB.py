@@ -143,5 +143,14 @@ class RipDB():
 
 	def get_finished_rips(self):
 		with self._lock:
-			rows = self._cursor.execute("SELECT ripid, target_directory FROM rips WHERE status = 'complete';").fetchall()
+			rows = self._cursor.execute("""
+				SELECT rips.ripid, target_directory, artist, album FROM rips
+					LEFT JOIN ripmeta ON rips.ripid = ripmeta.ripid
+					WHERE (status = 'completed') AND (ripmeta.ripid IS NOT NULL);
+				""").fetchall()
 			return rows
+
+	def mark_converted(self, ripid):
+		with self._lock:
+			self._cursor.execute("UPDATE rips SET status = 'converted' WHERE (ripid = ?) AND (status = 'completed');", (ripid, ))
+			self._conn.commit()

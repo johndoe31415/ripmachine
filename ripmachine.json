@@ -5,7 +5,8 @@
 	},
 	"directories": {
 		"_work":			"~/ripmachine/work",
-		"work":				"/tmp/ripmachine"
+		"work":				"/tmp/ripmachine",
+		"converted":		"/tmp/converted"
 	},	
 	"binaries": {
 		"ripdisc":			"${configdir}/ripdisc/ripdisc"

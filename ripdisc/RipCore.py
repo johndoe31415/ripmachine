@@ -32,6 +32,7 @@ from Tools import FileTools
 from SpeedAverager import SpeedAverager
 from SpeedMonitor import SpeedMonitor
 from DeathSig import set_pdeathsig
+from AudioGenerator import AudioGenerator
 
 class RipCore():
 	def __init__(self, args):
@@ -55,6 +56,7 @@ class RipCore():
 		self._state = "idle"
 		self._error = None
 		self._progress = None
+		self._files = None
 		self._speed_monitor = SpeedMonitor()
 		self._start_utc = datetime.datetime.utcnow()
 
@@ -81,10 +83,14 @@ class RipCore():
 					"unix":		now.timestamp(),
 				},
 			},
+			"files": self._files,
 		}
 		with open(self._args.destdir + "/state.json", "w") as f:
-			json.dump(status, f, sort_keys = True, indent = 4)
-			f.write("\n")
+			if self._args.verbose:
+				json.dump(status, f, sort_keys = True, indent = 4)
+				f.write("\n")
+			else:
+				json.dump(status, f)
 
 	def _execute_cmds(self, commands, progress, disc_size):
 		speed = SpeedAverager()
@@ -217,8 +223,12 @@ class RipCore():
 
 		self._execute_cmds(commands, progress = _determine_progress, disc_size = disc_size)
 
-	def _mock_rip(self):
+		return [ "audio%02d.wav" % (i) for i in range(1, len(self._drive.media_id["tracks"]["content"]) + 1) ]
+
+	def _mock_rip(self, destdir):
 		self._state = "ripping"
+
+		AudioGenerator().write_wav(destdir + "/audio01.wav")
 
 		class ProgressMock():
 			def __init__(self, total_size, time_secs):
@@ -248,6 +258,7 @@ class RipCore():
 			[ "sleep", str(prog_mock.time_secs) ],
 		]
 		self._execute_cmds(cmds, prog_mock.progress, prog_mock.total_size)
+		return [ "audio01.wav" ]
 
 	def commence(self):
 		if os.path.exists(self._args.destdir):
@@ -266,14 +277,14 @@ class RipCore():
 
 		self.write_status()
 		if self._args.mock is not None:
-			self._mock_rip()
+			self._files = self._mock_rip(self._args.destdir)
 		else:
 			if self._drive.media_type == MediaType.DataCD:
-				self._rip_data_cd(self._args.destdir)
+				self._files = self._rip_data_cd(self._args.destdir)
 			elif self._drive.media_type == MediaType.DVD:
-				self._rip_dvd(self._args.destdir)
+				self._files = self._rip_dvd(self._args.destdir)
 			elif self._drive.media_type == MediaType.AudioCD:
-				self._rip_audio_cd(self._args.destdir)
+				self._files = self._rip_audio_cd(self._args.destdir)
 			else:
 				self._state = "error"
 				self._error = "Do not know how to handle media type %s." % (self._drive.media_type.name)
