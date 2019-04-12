@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python3 -u
 #	ripmachine - GUI-driven CD/DVD ripper
 #	Copyright (C) 2019-2019 Johannes Bauer
 #
