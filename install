@@ -48,7 +48,7 @@ with open(ui_service_file, "w") as f:
 	print("WantedBy=default.target", file = f)
 subprocess.check_call([ "systemctl", "--user", "enable", "ripmachine-ui.service" ])
 
-with open(ui_service_file, "w") as f:
+with open(postproc_service_file, "w") as f:
 	print("[Unit]", file = f)
 	print("Description=Ripmachine Postprocessing", file = f)
 	print("After=network-online.target", file = f)
