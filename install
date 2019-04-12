@@ -27,6 +27,7 @@ import subprocess
 install_dir = os.path.realpath(os.path.dirname(__file__))
 service_dir = os.path.expanduser("~/.local/share/systemd/user")
 ui_service_file = service_dir + "/ripmachine-ui.service"
+postproc_service_file = service_dir + "/ripmachine-postproc.service"
 
 with contextlib.suppress(FileExistsError):
 	os.makedirs(service_dir)
@@ -45,5 +46,18 @@ with open(ui_service_file, "w") as f:
 	print(file = f)
 	print("[Install]", file = f)
 	print("WantedBy=default.target", file = f)
-
 subprocess.check_call([ "systemctl", "--user", "enable", "ripmachine-ui.service" ])
+
+with open(ui_service_file, "w") as f:
+	print("[Unit]", file = f)
+	print("Description=Ripmachine Postprocessing", file = f)
+	print("After=network-online.target", file = f)
+	print(file = f)
+	print("[Service]", file = f)
+	print("Type=simple", file = f)
+	print("ExecStart=%s/rippostproc/rippostproc.py ripmachine.json" % (install_dir), file = f)
+	print("WorkingDirectory=%s" % (install_dir), file = f)
+	print(file = f)
+	print("[Install]", file = f)
+	print("WantedBy=default.target", file = f)
+subprocess.check_call([ "systemctl", "--user", "enable", "ripmachine-postproc.service" ])
