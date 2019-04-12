@@ -54,7 +54,7 @@ with open(postproc_service_file, "w") as f:
 	print("After=network-online.target", file = f)
 	print(file = f)
 	print("[Service]", file = f)
-	print("Environment=\"PYTHONIOENCODING=utf_8\"", file = f)
+	print("Environment=\"LANG=de_DE.UTF-8\"", file = f)
 	print("Type=simple", file = f)
 	print("ExecStart=%s/rippostproc/rippostproc.py ripmachine.json" % (install_dir), file = f)
 	print("WorkingDirectory=%s" % (install_dir), file = f)
