@@ -223,12 +223,12 @@ class RipCore():
 
 		self._execute_cmds(commands, progress = _determine_progress, disc_size = disc_size)
 
-		return [ "audio%02d.wav" % (i) for i in range(1, len(self._drive.media_id["tracks"]["content"]) + 1) ]
+		return [ "audio_%02d.wav" % (i) for i in range(1, len(self._drive.media_id["tracks"]["content"]) + 1) ]
 
 	def _mock_rip(self, destdir):
 		self._state = "ripping"
 
-		AudioGenerator().write_wav(destdir + "/audio01.wav")
+		AudioGenerator().write_wav(destdir + "/audio_01.wav")
 
 		class ProgressMock():
 			def __init__(self, total_size, time_secs):
@@ -258,7 +258,7 @@ class RipCore():
 			[ "sleep", str(prog_mock.time_secs) ],
 		]
 		self._execute_cmds(cmds, prog_mock.progress, prog_mock.total_size)
-		return [ "audio01.wav" ]
+		return [ "audio_01.wav" ]
 
 	def commence(self):
 		if os.path.exists(self._args.destdir):
