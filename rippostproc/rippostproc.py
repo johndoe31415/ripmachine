@@ -68,9 +68,9 @@ class RipPostProcessor():
 
 		cmds = [ ]
 		files = state.get("files")
-		if files is None:
-			# TODO: Stupid workaround to convert existing files
-			files = [ "audio_%02d.wav" % (x) for x in range(1, len(state["medium"]["info"]["tracks"]["content"]) + 1) ]
+#		if files is None:
+		# TODO: Stupid workaround to convert existing files
+		files = [ "audio_%02d.wav" % (x) for x in range(1, len(state["medium"]["info"]["tracks"]["content"]) + 1) ]
 
 		for (trackno, infilename) in enumerate(files, 1):
 			full_infilename = raw_data_dir + "/" + infilename
